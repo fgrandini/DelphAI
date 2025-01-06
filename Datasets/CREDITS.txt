@@ -1,0 +1,11 @@
+### 1. Iris Dataset
+- Source: https://www.kaggle.com/datasets/uciml/iris
+
+### 2. House Prices Dataset
+- Source: https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+
+### 3. MovieLens 100K
+- Source: https://www.kaggle.com/datasets/prajitdatta/movielens-100k-dataset
+
+### 4. Breast Cancer Dataset
+- Source: https://www.kaggle.com/datasets/nancyalaswad90/breast-cancer-dataset/discussion/334181
