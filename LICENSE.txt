@@ -1,9 +1,9 @@
-Este software foi desenvolvido pelo desenvolvedor Felipe Grandini ([felipe.grandini.dev@gmail.com]) em [2025].
+This software was developed by Felipe Grandini ([felipe.grandini.dev@gmail.com]) in [2025].
 
 Copyright (C) [2025] [Felipe Grandini]
 
-Este projeto é licenciado sob a GNU Lesser General Public License, versão 3.  
-Veja o texto completo da licença abaixo:
+This project is licensed under the GNU Lesser General Public License, version 3.
+See the full license text below:
 
                    GNU LESSER GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
