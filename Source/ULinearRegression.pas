@@ -14,7 +14,7 @@ type
     procedure TrainModel;
   public
     procedure Train(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
-    procedure Train(aTrainingData : String; aHaveHeader : Boolean = True); overload;
+    procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
     procedure Train(aTrainingData : TDataSet); overload;
     function Predict(aSample: TAISampleAtr; aInputNormalized : Boolean = False): Double;
 
@@ -133,9 +133,9 @@ begin
 
 end;
 
-procedure TLinearRegression.Train(aTrainingData : String; aHaveHeader: Boolean);
+procedure TLinearRegression.Train(aTrainingData : String; aHasHeader: Boolean);
 begin
-  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
 
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');

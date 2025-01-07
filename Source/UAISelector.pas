@@ -94,7 +94,7 @@ type
                          aRandomDataset : Boolean = True;
                          aCrossValidation : Boolean = True);
       constructor Create(aDataset : TAIDatasetClassification; aNormalizationRange : TNormalizationRange); overload;
-      constructor Create(aDataset : String; aHaveHeader : Boolean = True); overload;
+      constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
       constructor Create(aDataset : TDataSet); overload;
       destructor Destroy; override;
 
@@ -191,7 +191,7 @@ type
                                             aRandomDataset : Boolean = True;
                                             aCrossValidation : Boolean = True);
       constructor Create(aDataset : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
-      constructor Create(aDataset : String; aHaveHeader : Boolean = True); overload;
+      constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
       constructor Create(aDataset : TDataSet); overload;
       destructor Destroy; override;
 
@@ -240,7 +240,7 @@ type
       procedure RunTestsItemItem(aCsvResultFile, aLogFile : String;
                        aMaxThreads : Integer = 0);
       constructor Create(aDataset : TAIDatasetRecommendation; aNormalizationRange : TNormalizationRange); overload;
-      constructor Create(aDataset : String; aHaveHeader : Boolean = True); overload;
+      constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
       constructor Create(aDataset : TDataSet); overload;
       destructor Destroy; override;
 
@@ -314,9 +314,9 @@ begin
   CreateFs;
 end;
 
-constructor TAIClassificationSelector.Create(aDataset: String; aHaveHeader: Boolean);
+constructor TAIClassificationSelector.Create(aDataset: String; aHasHeader: Boolean);
 begin
-  LoadDataset(aDataset, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aDataset, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;
@@ -743,9 +743,9 @@ begin
   CreateFs;
 end;
 
-constructor TAIRegressionSelector.Create(aDataset: String; aHaveHeader: Boolean);
+constructor TAIRegressionSelector.Create(aDataset: String; aHasHeader: Boolean);
 begin
-  LoadDataset(aDataset, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aDataset, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;
@@ -1218,9 +1218,9 @@ begin
 end;
 
 constructor TAIRecommendationSelector.Create(aDataset: String;
-  aHaveHeader: Boolean);
+  aHasHeader: Boolean);
 begin
-  LoadDataset(aDataset, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aDataset, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;

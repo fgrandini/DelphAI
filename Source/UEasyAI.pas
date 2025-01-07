@@ -19,7 +19,7 @@ type
       FModel : TObject;
     public
       constructor Create;
-      procedure LoadDataset(aDataSet : String; aHaveHeader : Boolean = True); overload;
+      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
       procedure LoadDataset(aDataSet : TDataSet); overload;
       procedure LoadFromFile(aPath : String);
       procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
@@ -33,7 +33,7 @@ type
       FModel : TObject;
       FNormalizationRange : TNormalizationRange;
     public
-      procedure LoadDataset(aDataSet : String; aHaveHeader : Boolean = True); overload;
+      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
       procedure LoadDataset(aDataSet : TDataSet); overload;
       procedure LoadFromFile(aPath : String);
       procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
@@ -50,7 +50,7 @@ type
     public
       constructor Create(aItemsToRecommendCount : Integer) ;
       destructor Destroy; override;
-      procedure LoadDataset(aDataSet : String; aHaveHeader : Boolean = True); overload;
+      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
       procedure LoadDataset(aDataSet : TDataSet); overload;
       procedure LoadFromFile(aPath : String);
       procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
@@ -67,7 +67,7 @@ type
     public
       constructor Create(aItemsToRecommendCount : Integer) ;
       destructor Destroy; override;
-      procedure LoadDataset(aDataSet : String; aHaveHeader : Boolean = True); overload;
+      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
       procedure LoadDataset(aDataSet : TDataSet); overload;
       procedure LoadFromFile(aPath : String);
       procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
@@ -313,9 +313,9 @@ begin
   end;
 end;
 
-procedure TEasyAIClassification.LoadDataset(aDataSet : String; aHaveHeader: Boolean);
+procedure TEasyAIClassification.LoadDataset(aDataSet : String; aHasHeader: Boolean);
 begin
-  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHaveHeader);
+  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;    
@@ -545,9 +545,9 @@ begin
   end;
 end;
 
-procedure TEasyAIRegression.LoadDataset(aDataSet: String; aHaveHeader: Boolean);
+procedure TEasyAIRegression.LoadDataset(aDataSet: String; aHasHeader: Boolean);
 begin
-  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHaveHeader);
+  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;  
@@ -773,9 +773,9 @@ begin
   FindBestModelRec(FDataset, FNormalizationRange, FItemsToRecommendCount, aPathResultFile, aMode, True, aMaxThreads, aCsvResultModels, aLogFile);
 end;
 
-procedure TEasyAIRecommendationFromItem.LoadDataset(aDataSet: String; aHaveHeader: Boolean);
+procedure TEasyAIRecommendationFromItem.LoadDataset(aDataSet: String; aHasHeader: Boolean);
 begin
-  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHaveHeader);
+  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;
@@ -856,9 +856,9 @@ begin
   FindBestModelRec(FDataset, FNormalizationRange, FItemsToRecommendCount, aPathResultFile, aMode, False, aMaxThreads, aCsvResultModels, aLogFile);
 end;
 
-procedure TEasyAIRecommendationFromUser.LoadDataset(aDataSet: String; aHaveHeader: Boolean);
+procedure TEasyAIRecommendationFromUser.LoadDataset(aDataSet: String; aHasHeader: Boolean);
 begin
-  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHaveHeader);
+  UAuxGlobal.LoadDataset(aDataSet, FDataset, FNormalizationRange, aHasHeader);
 
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');

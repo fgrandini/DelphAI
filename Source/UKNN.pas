@@ -13,7 +13,7 @@ type
     function GetKs(const aDistancias: TArray<Double>): TArray<string>;
   public
     constructor Create(aTrainingData : TAIDatasetClassification; aNormalizationRange : TNormalizationRange; aK: Integer); overload;
-    constructor Create(aTrainingData : String; aK: Integer; aHaveHeader : Boolean = True); overload;
+    constructor Create(aTrainingData : String; aK: Integer; aHasHeader : Boolean = True); overload;
     constructor Create(aTrainingData : TDataSet; aK: Integer); overload;
     function Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False): string;
   end;
@@ -25,7 +25,7 @@ type
     function GetKs(const aDistancias: TArray<Double>): TArray<Double>;
   public
     constructor Create(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange; aK : Integer); overload;
-    constructor Create(aTrainingData : String; aK: Integer; aHaveHeader : Boolean = True); overload;
+    constructor Create(aTrainingData : String; aK: Integer; aHasHeader : Boolean = True); overload;
     constructor Create(aTrainingData : TDataSet; aK: Integer); overload;
     function Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False): Double;
   end;
@@ -122,11 +122,11 @@ begin
   FK := aK;
 end;
 
-constructor TKNNClassification.Create(aTrainingData: String; aK: Integer; aHaveHeader: Boolean);
+constructor TKNNClassification.Create(aTrainingData: String; aK: Integer; aHasHeader: Boolean);
 begin
   ValidaK(aK);
 
-  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
 
   Trained := True;
   PopulateInputLenght;
@@ -238,11 +238,11 @@ begin
   FK := aK;
 end;
 
-constructor TKNNRegression.Create(aTrainingData: String; aK: Integer; aHaveHeader: Boolean);
+constructor TKNNRegression.Create(aTrainingData: String; aK: Integer; aHasHeader: Boolean);
 begin
   ValidaK(aK);
 
-  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
 
   Trained := True;
   PopulateInputLenght;

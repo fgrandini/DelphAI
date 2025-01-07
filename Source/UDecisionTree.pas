@@ -32,7 +32,7 @@ type
     constructor Create(aTrainedFile : String); overload;
     destructor Destroy; override;
     procedure Train(aTrainingData : TAIDatasetClassification; aNormalizationRange : TNormalizationRange); overload;
-    procedure Train(aTrainingData : String; aHaveHeader : Boolean = True); overload;
+    procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
     procedure Train(aTrainingData : TDataSet); overload;
     procedure LoadFromJson(aJson : TJSONObject);
 
@@ -314,12 +314,12 @@ begin
   Trained := True;
 end;
 
-procedure TDecisionTree.Train(aTrainingData: String; aHaveHeader: Boolean);
+procedure TDecisionTree.Train(aTrainingData: String; aHasHeader: Boolean);
 var
   Labels: TAILabelsClassification;
   Data: TAISamplesAtr;
 begin
-  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
 
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');

@@ -10,7 +10,7 @@ type
   TCentroids = TArray<TCentroid>;
 
   function KMeans(aData: TAIDatasetClustering; aK, aMaxIterations, aNumInitializations: Integer): TArray<Integer>; overload;
-  function KMeans(aData: String; aK, aMaxIterations, aNumInitializations: Integer; aHaveHeader : Boolean = True): TArray<Integer>; overload;
+  function KMeans(aData: String; aK, aMaxIterations, aNumInitializations: Integer; aHasHeader : Boolean = True): TArray<Integer>; overload;
   function KMeans(aData: TDataSet; aK, aMaxIterations, aNumInitializations: Integer): TArray<Integer>; overload;
 
 implementation
@@ -174,12 +174,12 @@ begin
   Result := Inertia;
 end;
 
-function KMeans(aData: String; aK, aMaxIterations, aNumInitializations: Integer; aHaveHeader : Boolean = True): TArray<Integer>;
+function KMeans(aData: String; aK, aMaxIterations, aNumInitializations: Integer; aHasHeader : Boolean = True): TArray<Integer>;
 var
   vDataSet : TAIDatasetClustering;
   vNormRange : TNormalizationRange;
 begin
-  LoadDataset(aData, vDataSet, vNormRange, aHaveHeader);
+  LoadDataset(aData, vDataSet, vNormRange, aHasHeader);
   Result := KMeans(vDataSet, aK, aMaxIterations, aNumInitializations);
 end;
 

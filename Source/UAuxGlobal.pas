@@ -12,9 +12,9 @@ type
   function SplitLabelAndSampleDataset(const ADataset: TAIDatasetClassification; out ASamples: TAISamplesAtr; out ALabels: TAILabelsClassification): Boolean; overload;
   function SplitLabelAndSampleDataset(const ADataset: TAIDatasetRegression; out ASamples: TAISamplesAtr; out ALabels: TAILabelsRegression): Boolean; overload;
 
-  function LoadDataset(const aFileName: String; out Data: TAIDatasetRegression; out aNormalizationRange : TNormalizationRange; aHaveHeader : Boolean = True): Boolean; overload;
-  function LoadDataset(const aFileName: String; out Data: TAIDatasetClassification; out aNormalizationRange : TNormalizationRange; aHaveHeader : Boolean = True): Boolean; overload;
-  function LoadDataset(const aFileName: String; out Data: TArray<TAISampleAtr>; out aNormalizationRange : TNormalizationRange; aHaveHeader: Boolean = True): Boolean; overload;
+  function LoadDataset(const aFileName: String; out Data: TAIDatasetRegression; out aNormalizationRange : TNormalizationRange; aHasHeader : Boolean = True): Boolean; overload;
+  function LoadDataset(const aFileName: String; out Data: TAIDatasetClassification; out aNormalizationRange : TNormalizationRange; aHasHeader : Boolean = True): Boolean; overload;
+  function LoadDataset(const aFileName: String; out Data: TArray<TAISampleAtr>; out aNormalizationRange : TNormalizationRange; aHasHeader: Boolean = True): Boolean; overload;
 
   function LoadDataset(const aDataSet : TDataSet; out Data: TAIDatasetRegression; out aNormalizationRange : TNormalizationRange): Boolean; overload;
   function LoadDataset(const aDataSet : TDataSet; out Data: TAIDatasetClassification; out aNormalizationRange : TNormalizationRange): Boolean; overload;
@@ -168,7 +168,7 @@ begin
   Result := True;
 end;
 
-function LoadGenericDataSetFile(const FileName: String; out Data: TAIDatasetGeneric; aHaveHeader : Boolean = True; aClassification : Boolean = False) : Boolean;
+function LoadGenericDataSetFile(const FileName: String; out Data: TAIDatasetGeneric; aHasHeader : Boolean = True; aClassification : Boolean = False) : Boolean;
  var
   vLista: TStringList;
   vLinha,
@@ -188,7 +188,7 @@ begin
   vLista := TStringList.Create;
   try
     vLista.LoadFromFile(FileName);
-    if aHaveHeader then begin
+    if aHasHeader then begin
       vInicio := 1;
     end else begin
       vInicio := 0;
@@ -243,23 +243,23 @@ begin
   end;
 end;
 
-function LoadDataset(const aFileName: String; out Data: TAIDatasetClassification; out aNormalizationRange : TNormalizationRange; aHaveHeader : Boolean = True): Boolean;
+function LoadDataset(const aFileName: String; out Data: TAIDatasetClassification; out aNormalizationRange : TNormalizationRange; aHasHeader : Boolean = True): Boolean;
 var
   vDataGeneric : TAIDatasetGeneric;
 begin
-  Result := LoadGenericDataSetFile(aFileName, vDataGeneric, aHaveHeader, True);
+  Result := LoadGenericDataSetFile(aFileName, vDataGeneric, aHasHeader, True);
    if Result then begin
     Data := vDataGeneric;
     aNormalizationRange := NormalizeDataset(Data);
   end;
 end;
 
-function LoadDataset(const aFileName: String; out Data: TAIDatasetRegression; out aNormalizationRange : TNormalizationRange; aHaveHeader : Boolean = True): Boolean;
+function LoadDataset(const aFileName: String; out Data: TAIDatasetRegression; out aNormalizationRange : TNormalizationRange; aHasHeader : Boolean = True): Boolean;
 var
   vDataGeneric : TAIDatasetGeneric;
   i : Integer;
 begin
-  Result := LoadGenericDataSetFile(aFileName, vDataGeneric, aHaveHeader);
+  Result := LoadGenericDataSetFile(aFileName, vDataGeneric, aHasHeader);
    if Result then begin
     SetLength(Data, Length(vDataGeneric));
     for i := 0 to High(vDataGeneric) do begin
@@ -269,12 +269,12 @@ begin
   end;
 end;
 
-function LoadDataset(const aFileName: String; out Data: TArray<TAISampleAtr>; out aNormalizationRange : TNormalizationRange; aHaveHeader: Boolean = True): Boolean;
+function LoadDataset(const aFileName: String; out Data: TArray<TAISampleAtr>; out aNormalizationRange : TNormalizationRange; aHasHeader: Boolean = True): Boolean;
 var
   vDataGeneric : TAIDatasetGeneric;
   i : Integer;
 begin
-  Result := LoadGenericDataSetFile(aFileName, vDataGeneric, aHaveHeader);
+  Result := LoadGenericDataSetFile(aFileName, vDataGeneric, aHasHeader);
   Result := Result and (Length(vDataGeneric) > 0);
    if Result then begin
     SetLength(Data, Length(vDataGeneric), Length(vDataGeneric[0].Key) + 1);

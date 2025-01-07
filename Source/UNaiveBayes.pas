@@ -19,7 +19,7 @@ type
     procedure DoTrain;
   public
     procedure Train(aTrainingData : TAIDatasetClassification; aNormalizationRange : TNormalizationRange); overload;
-    procedure Train(aTrainingData : String; aHaveHeader : Boolean = True); overload;
+    procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
     procedure Train(aTrainingData : TDataSet); overload;
     function Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False): string;
     function ToJSONObject: TJSONObject;
@@ -262,9 +262,9 @@ begin
   DoTrain;
 end;
 
-procedure TGaussianNaiveBayes.Train(aTrainingData: String; aHaveHeader: Boolean);
+procedure TGaussianNaiveBayes.Train(aTrainingData: String; aHasHeader: Boolean);
 begin
-  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;

@@ -9,7 +9,7 @@ type
   TAISampleAtr = TArray<Double>;
   TAIDatasetClustering = TArray<TAISampleAtr>;
 
-  function DBSCAN(aData : String; aEps: Double; aMinPts: Integer; aHaveHeader : Boolean = True): TArray<Integer>; overload;
+  function DBSCAN(aData : String; aEps: Double; aMinPts: Integer; aHasHeader : Boolean = True): TArray<Integer>; overload;
   function DBSCAN(aData : TDataSet; aEps: Double; aMinPts: Integer): TArray<Integer>; overload;
   function DBSCAN(aData : TAIDatasetClustering; aEps: Double; aMinPts: Integer): TArray<Integer>; overload;
 
@@ -69,12 +69,12 @@ begin
   end;
 end;
 
-function DBSCAN(aData : String; aEps: Double; aMinPts: Integer; aHaveHeader : Boolean = True): TArray<Integer>; overload;
+function DBSCAN(aData : String; aEps: Double; aMinPts: Integer; aHasHeader : Boolean = True): TArray<Integer>; overload;
 var
   vDataSet : TAIDatasetClustering;
   vNormRange : TNormalizationRange;
 begin
-  LoadDataset(aData, vDataSet, vNormRange, aHaveHeader);
+  LoadDataset(aData, vDataSet, vNormRange, aHasHeader);
   Result := DBSCAN(vDataSet, aEps, aMinPts);
 end;
 

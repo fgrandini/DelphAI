@@ -10,7 +10,7 @@ type
   TAIDatasetClustering = TArray<TAISampleAtr>;
 
     function MeanShift(aData : TAIDatasetClustering; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
-    function MeanShift(aData : String; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300; aHaveHeader : Boolean = True): TArray<Integer>; overload;
+    function MeanShift(aData : String; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300; aHasHeader : Boolean = True): TArray<Integer>; overload;
     function MeanShift(aData : TDataSet; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
 
 implementation
@@ -85,12 +85,12 @@ begin
   end;
 end;
 
-function MeanShift(aData : String; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300; aHaveHeader : Boolean = True): TArray<Integer>; overload;
+function MeanShift(aData : String; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300; aHasHeader : Boolean = True): TArray<Integer>; overload;
 var
   vDataSet : TAIDatasetClustering;
   vNormRange : TNormalizationRange;
 begin
-  LoadDataset(aData, vDataSet, vNormRange, aHaveHeader);
+  LoadDataset(aData, vDataSet, vNormRange, aHasHeader);
   Result := MeanShift(vDataSet, aBandwidth, aEpsilon, aMaxIterations);
 end;
 

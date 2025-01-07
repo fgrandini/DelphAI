@@ -41,7 +41,7 @@ type
                        aCalculateItemDistanceOnCreate : Boolean = False); overload;
     constructor Create(aMatrixFile : String; aItemsToRecommendCount, aK : Integer;
                        aAggregMethod : TUserScoreAggregationMethod = amWeightedAverage; aDistanceMethod : TDistanceMode = dmCosine;
-                       aCalculateItemDistanceOnCreate : Boolean = False; aHaveHeader : Boolean = True); overload;
+                       aCalculateItemDistanceOnCreate : Boolean = False; aHasHeader : Boolean = True); overload;
     constructor Create(aMatrix: TDataSet; aItemsToRecommendCount, aK : Integer;
                        aAggregMethod : TUserScoreAggregationMethod = amWeightedAverage; aDistanceMethod : TDistanceMode = dmCosine;
                        aCalculateItemDistanceOnCreate : Boolean = False); overload;
@@ -103,9 +103,9 @@ end;
 
 constructor TRecommender.Create(aMatrixFile : String; aItemsToRecommendCount, aK : Integer;
                        aAggregMethod : TUserScoreAggregationMethod = amWeightedAverage; aDistanceMethod : TDistanceMode = dmCosine;
-                       aCalculateItemDistanceOnCreate : Boolean = False; aHaveHeader : Boolean = True);
+                       aCalculateItemDistanceOnCreate : Boolean = False; aHasHeader : Boolean = True);
 begin
-  LoadDataset(aMatrixFile, FDataset, FNormalizationRange, aHaveHeader);
+  LoadDataset(aMatrixFile, FDataset, FNormalizationRange, aHasHeader);
   if Length(FDataset) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;
