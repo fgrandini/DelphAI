@@ -187,7 +187,7 @@ begin
   JsonObj := TJSONObject.Create;
 
   vRoot.AddPair('NormalizationRange', NormRangeToJSON);
-  vRoot.AddPair('InputLength', InputLength);
+  vRoot.AddPair('InputLength', TJSONNumber.Create(InputLength));
   vRoot.AddPair('Model', JsonObj);
 
   for ClassLabel in FClassProbabilities.Keys do

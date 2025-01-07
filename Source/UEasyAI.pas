@@ -262,7 +262,7 @@ begin
     vJsonObj := TJSONObject.Create;
     try
       vBestModel := vClassification.Models.LstModels[vIndiceMelhor];
-      vJsonObj.AddPair('Precision', vBestModel.Accuracy);
+      vJsonObj.AddPair('Precision', TJSONNumber.Create(vBestModel.Accuracy));
       if vBestModel is TAIClassificationModelKNN then begin
         ShowMessageNeedDataset;
         vJsonObj.AddPair('model', 'KNN');
@@ -494,7 +494,7 @@ begin
 
     vJsonObj := TJSONObject.Create;
     try
-      vJsonObj.AddPair('Precision', vBestScore);
+      vJsonObj.AddPair('Precision', TJSONNumber.Create(vBestScore));
       if vBestModel is TAIRegressionModelKNN then begin
         ShowMessageNeedDataset;
         vJsonObj.AddPair('model', 'KNN');
@@ -730,7 +730,7 @@ begin
     try
       vBestModel := vRecommendation.Models.LstModels[vIndiceMelhor];
       ShowMessageNeedDataset;
-      vJsonObj.AddPair('Precision', vBestModel.Accuracy);
+      vJsonObj.AddPair('Precision', TJSONNumber.Create(vBestModel.Accuracy));
       if aItem then begin
         vJsonObj.AddPair('From', 'Item');
       end else begin

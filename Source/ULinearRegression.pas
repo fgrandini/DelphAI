@@ -170,7 +170,7 @@ begin
   JsonObj := TJSONObject.Create;
 
   Result.AddPair('NormalizationRange', NormRangeToJSON);
-  Result.AddPair('InputLength', InputLength);
+  Result.AddPair('InputLength', TJSONNumber.Create(InputLength));
   Result.AddPair('Model', JsonObj);
 
   JsonCoeficientes := TJSONArray.Create;

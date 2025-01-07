@@ -354,7 +354,7 @@ var
 begin
   vJson := TJSONObject.Create;
   vJson.AddPair('NormalizationRange', NormRangeToJSON);
-  vJson.AddPair('InputLength', InputLength);
+  vJson.AddPair('InputLength', TJSONNumber.Create(InputLength));
   vJson.AddPair('Root', NodeToJSON(FRoot));
   Result := vJson;
 end;
