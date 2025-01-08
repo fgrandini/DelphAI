@@ -12,6 +12,7 @@ Whether you're a beginner or an experienced Machine Learning practitioner, Delph
 - **Clustering**: Identify patterns in your data with clustering algorithms.
 - **Classification**: Categorize data into distinct classes.
 - **Recommendation**: Build recommendation systems for items and users.
+- **AISelector**: Test multiple custom models at once and compare the results.
 - **EasyAI**: A module for beginners that automates the entire process:
   - Selects the best model for the problem.
   - Performs validation tests.
@@ -22,7 +23,8 @@ Whether you're a beginner or an experienced Machine Learning practitioner, Delph
 ## Full Documentation
 
 For technical details, classes, functions, and usage examples, visit our official documentation:  
-📚 **[DelphAI Documentation](https://delphai.gitbook.io/delphai)**
+📚 **[DelphAI - English documentation](https://delphai.gitbook.io/delphai/en)**
+📚 **[DelphAI - Documentação em português](https://delphai.gitbook.io/delphai)**
 
 ---
 
