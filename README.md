@@ -23,7 +23,7 @@ Whether you're a beginner or an experienced Machine Learning practitioner, Delph
 ## Full Documentation
 
 For technical details, classes, functions, and usage examples, visit our official documentation:  
-📚 **[DelphAI - English documentation](https://delphai.gitbook.io/delphai/en)**
+📚 **[DelphAI - English documentation](https://delphai.gitbook.io/delphai/en)**<br>
 📚 **[DelphAI - Documentação em português](https://delphai.gitbook.io/delphai)**
 
 ---
@@ -31,7 +31,7 @@ For technical details, classes, functions, and usage examples, visit our officia
 ## How to Use
 
 ### 1. Install the component
-Clone the repository and add the files to your library path or Delphi project. More details on how to do this can be found **[in the documentation](https://delphai.gitbook.io/delphai/visao-geral/instalacao)**.
+Clone the repository and add the files to your library path or Delphi project. More details on how to do this can be found **[in the documentation](https://delphai.gitbook.io/delphai/en/overview/how-to-install)**.
 
 ### 2. Use EasyAI to find the best model for you (Regression example):
 
