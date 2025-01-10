@@ -3,14 +3,19 @@ unit UKNN;
 interface
 
 uses
-  System.Generics.Collections, System.SysUtils, System.Math, Data.DB, UAITypes, UAIModel;
+  System.Generics.Collections,
+  System.SysUtils,
+  System.Math,
+  Data.DB,
+  UAITypes,
+  UAIModel;
 
 type
   { TKNNPrediction }
   TKNNClassification = class(TClassificationModel)
   private
     FK : Integer;
-    function GetKs(const aDistancias: TArray<Double>): TArray<string>;
+    function GetKs(const aDistances: TArray<Double>): TArray<string>;
   public
     constructor Create(aTrainingData : TAIDatasetClassification; aNormalizationRange : TNormalizationRange; aK: Integer); overload;
     constructor Create(aTrainingData : String; aK: Integer; aHasHeader : Boolean = True); overload;
@@ -22,7 +27,8 @@ type
   TKNNRegression = class(TRegressionModel)
   private
     FK : Integer;
-    function GetKs(const aDistancias: TArray<Double>): TArray<Double>;
+    function GetKs(const aDistances: TArray<Double>): TArray<Double>;
+    class procedure ValidateK(aK : Integer);
   public
     constructor Create(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange; aK : Integer); overload;
     constructor Create(aTrainingData : String; aK: Integer; aHasHeader : Boolean = True); overload;
@@ -33,66 +39,63 @@ type
 implementation
 
 uses
-  UAuxGlobal, System.Generics.Defaults;
+  UAuxGlobal,
+  System.Generics.Defaults;
 
-
-function TKNNRegression.GetKs(const aDistancias: TArray<Double>): TArray<Double>;
+function TKNNRegression.GetKs(const aDistances: TArray<Double>): TArray<Double>;
 var
   i: Integer;
-  KMaisProximos: TArray<Double>;
-  DistanciasComIndices: TArray<TPair<Double, Integer>>;
+  vKNearest: TArray<Double>;
+  vDistancesWithIndices: TArray<TPair<Double, Integer>>;
 begin
-  SetLength(DistanciasComIndices, Length(aDistancias));
-  for i := 0 to High(aDistancias) do begin
-    DistanciasComIndices[i] := TPair<Double, Integer>.Create(aDistancias[i], i);
+  SetLength(vDistancesWithIndices, Length(aDistances));
+  for i := 0 to High(aDistances) do begin
+    vDistancesWithIndices[i] := TPair<Double, Integer>.Create(aDistances[i], i);
   end;
 
-  TArray.Sort<TPair<Double, Integer>>(DistanciasComIndices, TComparer<TPair<Double, Integer>>.Construct(
+  TArray.Sort<TPair<Double, Integer>>(vDistancesWithIndices, TComparer<TPair<Double, Integer>>.Construct(
     function(const L, R: TPair<Double, Integer>): Integer
     begin
       Result := CompareValue(L.Key, R.Key);
     end));
 
-  SetLength(KMaisProximos, FK);
+  SetLength(vKNearest, FK);
   for i := 0 to FK - 1 do begin
-    KMaisProximos[i] := FDataset[DistanciasComIndices[i].Value].Value;
+    vKNearest[i] := FDataset[vDistancesWithIndices[i].Value].Value;
   end;
 
-  Result := KMaisProximos;
+  Result := vKNearest;
 end;
 
 function TKNNRegression.Predict(aSample: TAISampleAtr; aInputNormalized : Boolean = False): Double;
 var
-  aDistancias: TArray<Double>;
-  vizinhos: TArray<Double>;
+  vDistances: TArray<Double>;
+  vNeighbors: TArray<Double>;
   i: Integer;
-  somaVizinhos, media: Double;
+  vSumNeighbors, vMedia: Double;
 begin
   aSample := Copy(aSample);
   if not aInputNormalized then begin
     ValidateAndNormalizeInput(aSample);
   end;
-  SetLength(aDistancias, Length(FDataset));
+  SetLength(vDistances, Length(FDataset));
 
-  
   for i := 0 to High(FDataset) do begin
-    aDistancias[i] := CalcularDistanciaEuclidiana(aSample, FDataset[i].Key);
+    vDistances[i] := CalculateEuclideanDistance(aSample, FDataset[i].Key);
   end;
 
-  vizinhos := GetKs(aDistancias);
+  vNeighbors := GetKs(vDistances);
 
-  
-  somaVizinhos := 0;
-  for i := 0 to High(vizinhos) do begin
-    somaVizinhos := somaVizinhos + vizinhos[i];
+  vSumNeighbors := 0;
+  for i := 0 to High(vNeighbors) do begin
+    vSumNeighbors := vSumNeighbors + vNeighbors[i];
   end;
 
-  media := somaVizinhos / FK;
-
-  Result := media; 
+  vMedia := vSumNeighbors / FK;
+  Result := vMedia;
 end;
 
-procedure ValidaK(aK : Integer);
+class procedure TKNNRegression.ValidateK(aK : Integer);
 begin
   if not Odd(aK) then begin
     raise Exception.CreateFmt('Error: The value of K (%d) must be an odd number. Please provide an odd value.', [aK]);
@@ -101,7 +104,7 @@ end;
 
 constructor TKNNClassification.Create(aTrainingData: TAIDatasetClassification; aNormalizationRange : TNormalizationRange; aK: Integer);
 begin
-  ValidaK(aK);
+  TKNNRegression.ValidateK(aK);
 
   FNormalizationRange := aNormalizationRange;
   FDataset := Copy(aTrainingData);
@@ -113,7 +116,7 @@ end;
 
 constructor TKNNClassification.Create(aTrainingData: TDataSet; aK: Integer);
 begin
-  ValidaK(aK);
+  TKNNRegression.ValidateK(aK);
 
   LoadDataset(aTrainingData, FDataset, FNormalizationRange);
 
@@ -124,7 +127,7 @@ end;
 
 constructor TKNNClassification.Create(aTrainingData: String; aK: Integer; aHasHeader: Boolean);
 begin
-  ValidaK(aK);
+  TKNNRegression.ValidateK(aK);
 
   LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
 
@@ -133,91 +136,84 @@ begin
   FK := aK;
 end;
 
-function TKNNClassification.GetKs(const aDistancias: TArray<Double>): TArray<string>;
+function TKNNClassification.GetKs(const aDistances: TArray<Double>): TArray<string>;
 var
   i: Integer;
-  KMaisProximos: TArray<string>;
-  DistanciasComIndices: TArray<TPair<Double, Integer>>;
+  vKNearest: TArray<string>;
+  vDistancesWithIndices: TArray<TPair<Double, Integer>>;
 begin
-  SetLength(DistanciasComIndices, Length(aDistancias));
-  for i := 0 to High(aDistancias) do begin
-    DistanciasComIndices[i] := TPair<Double, Integer>.Create(aDistancias[i], i);
+  SetLength(vDistancesWithIndices, Length(aDistances));
+  for i := 0 to High(aDistances) do begin
+    vDistancesWithIndices[i] := TPair<Double, Integer>.Create(aDistances[i], i);
   end;
 
-  
-  TArray.Sort<TPair<Double, Integer>>(DistanciasComIndices, TComparer<TPair<Double, Integer>>.Construct(
+
+  TArray.Sort<TPair<Double, Integer>>(vDistancesWithIndices, TComparer<TPair<Double, Integer>>.Construct(
     function(const L, R: TPair<Double, Integer>): Integer
     begin
       Result := CompareValue(L.Key, R.Key);
     end));
 
-  SetLength(KMaisProximos, FK);
+  SetLength(vKNearest, FK);
   for i := 0 to FK - 1 do begin
-    KMaisProximos[i] := FDataset[DistanciasComIndices[i].Value].Value;
+    vKNearest[i] := FDataset[vDistancesWithIndices[i].Value].Value;
   end;
 
-  Result := KMaisProximos;
+  Result := vKNearest;
 end;
-
 
 function TKNNClassification.Predict(aSample: TAISampleAtr; aInputNormalized : Boolean = False): string;
 var
-  aDistancias: TArray<Double>;
-  vVizinhos: TArray<string>;
+  vDistances: TArray<Double>;
+  vNeighbors: TArray<string>;
   i: Integer;
-  vClasseMaisProxima: string;
+  vNearestClass: string;
   vContClasses: TDictionary<string, Integer>;
   vMaxCount, vCurrentCount: Integer;
-  vClasse: string;
+  vClass: string;
 begin
   aSample := Copy(aSample);
   if not aInputNormalized then begin
     ValidateAndNormalizeInput(aSample);
   end;
-  SetLength(aDistancias, Length(FDataset));
+  SetLength(vDistances, Length(FDataset));
 
-  
   for i := 0 to High(FDataset) do begin
-    aDistancias[i] := CalcularDistanciaEuclidiana(aSample, FDataset[i].Key);
+    vDistances[i] := CalculateEuclideanDistance(aSample, FDataset[i].Key);
   end;
 
-  
-  vVizinhos := GetKs(aDistancias);
+  vNeighbors := GetKs(vDistances);
 
-  
   vContClasses := TDictionary<string, Integer>.Create;
   try
-    for i := 0 to High(vVizinhos) do begin
-      vClasse := vVizinhos[i];
-      if vContClasses.ContainsKey(vClasse) then
-        vContClasses[vClasse] := vContClasses[vClasse] + 1
+    for i := 0 to High(vNeighbors) do begin
+      vClass := vNeighbors[i];
+      if vContClasses.ContainsKey(vClass) then
+        vContClasses[vClass] := vContClasses[vClass] + 1
       else
-        vContClasses.Add(vClasse, 1);
+        vContClasses.Add(vClass, 1);
     end;
 
-    
     vMaxCount := -1;
-    for vClasse in vContClasses.Keys do begin
-      vCurrentCount := vContClasses[vClasse];
+    for vClass in vContClasses.Keys do begin
+      vCurrentCount := vContClasses[vClass];
       if vCurrentCount > vMaxCount then begin
         vMaxCount := vCurrentCount;
-        vClasseMaisProxima := vClasse;
+        vNearestClass := vClass;
       end;
     end;
   finally
     vContClasses.Free;
   end;
 
-  Result := vClasseMaisProxima; 
+  Result := vNearestClass;
 end;
-
 
 { TKNNRegression }
 
-
 constructor TKNNRegression.Create(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange; aK: Integer);
 begin
-  ValidaK(aK);
+  ValidateK(aK);
 
   FNormalizationRange := aNormalizationRange;
   FDataset := Copy(aTrainingData);
@@ -229,7 +225,7 @@ end;
 
 constructor TKNNRegression.Create(aTrainingData : TDataSet; aK: Integer);
 begin
-  ValidaK(aK);
+  ValidateK(aK);
 
   LoadDataset(aTrainingData, FDataset, FNormalizationRange);
 
@@ -240,7 +236,7 @@ end;
 
 constructor TKNNRegression.Create(aTrainingData: String; aK: Integer; aHasHeader: Boolean);
 begin
-  ValidaK(aK);
+  ValidateK(aK);
 
   LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
 

@@ -9,31 +9,35 @@ type
   TAISampleAtr = TArray<Double>;
 
   TRidgeRegression = class(TRegressionModel)
-    private
-      FCoefs : TAISampleAtr;
-      FAlfa : Double;
+  private
+    FCoefs : TAISampleAtr;
+    FAlfa : Double;
     procedure DoTrain;
-    public
-      procedure Train(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
-      procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
-      procedure Train(aTrainingData : TDataSet); overload;
-      procedure FromJson(aJson: TJsonObject);
-      function ToJson: TJsonObject;
-      procedure LoadFromFile(const FileName: string);
-      procedure SaveToFile(const FileName: string);
-      function Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False): Double;
-      constructor Create(aTrainedFile : String); overload;
-      constructor Create(aAlfa : Double); overload;
+    function IdentityMatrix(aSize: Integer): TAISamplesAtr;
+    function MatrixAdd(const A, B: TAISamplesAtr): TAISamplesAtr;
+    function MatrixInverse(const A: TAISamplesAtr): TAISamplesAtr;
+    function MatrixMultiply(const A, B: TAISamplesAtr): TAISamplesAtr;
+    function MatrixTranspose(const A: TAISamplesAtr): TAISamplesAtr;
+    function MatrixVectorMultiply(const A: TAISamplesAtr; const B: TAISampleAtr): TAISampleAtr;
+  public
+    procedure Train(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
+    procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
+    procedure Train(aTrainingData : TDataSet); overload;
+    procedure FromJson(aJson: TJsonObject);
+    function ToJson: TJsonObject;
+    procedure LoadFromFile(const aFileName: string);
+    procedure SaveToFile(const aFileName: string);
+    function Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False): Double;
+    constructor Create(aTrainedFile : String); overload;
+    constructor Create(aAlfa : Double); overload;
   end;
-
-
 
 implementation
 
 uses
   UAuxGlobal, System.Classes, System.Generics.Collections;
 
-function MatrixTranspose(const A: TAISamplesAtr): TAISamplesAtr;
+function TRidgeRegression.MatrixTranspose(const A: TAISamplesAtr): TAISamplesAtr;
 var
   i, j: Integer;
 begin
@@ -43,7 +47,7 @@ begin
       Result[j][i] := A[i][j];
 end;
 
-function MatrixMultiply(const A, B: TAISamplesAtr): TAISamplesAtr;
+function TRidgeRegression.MatrixMultiply(const A, B: TAISamplesAtr): TAISamplesAtr;
 var
   i, j, k: Integer;
 begin
@@ -57,7 +61,7 @@ begin
     end;
 end;
 
-function MatrixVectorMultiply(const A: TAISamplesAtr; const B: TAISampleAtr): TAISampleAtr;
+function TRidgeRegression.MatrixVectorMultiply(const A: TAISamplesAtr; const B: TAISampleAtr): TAISampleAtr;
 var
   i, j: Integer;
 begin
@@ -70,28 +74,19 @@ begin
   end;
 end;
 
-function VectorAdd(const A, B: TAISampleAtr): TAISampleAtr;
+function TRidgeRegression.IdentityMatrix(aSize: Integer): TAISamplesAtr;
 var
   i: Integer;
 begin
-  SetLength(Result, Length(A));
-  for i := 0 to High(A) do
-    Result[i] := A[i] + B[i];
-end;
-
-function IdentityMatrix(Size: Integer): TAISamplesAtr;
-var
-  i: Integer;
-begin
-  SetLength(Result, Size, Size);
-  for i := 0 to Size - 1 do
+  SetLength(Result, aSize, aSize);
+  for i := 0 to aSize - 1 do
     Result[i][i] := 1;
 end;
 
-function MatrixInverse(const A: TAISamplesAtr): TAISamplesAtr;
+function TRidgeRegression.MatrixInverse(const A: TAISamplesAtr): TAISamplesAtr;
 var
   i, j, k, n: Integer;
-  temp: Double;
+  vTemp: Double;
 begin
   n := Length(A);
   SetLength(Result, n, n * 2);
@@ -105,17 +100,17 @@ begin
 
   for i := 0 to n - 1 do
   begin
-    temp := Result[i][i];
+    vTemp := Result[i][i];
     for j := 0 to 2 * n - 1 do
-      Result[i][j] := Result[i][j] / temp;
+      Result[i][j] := Result[i][j] / vTemp;
 
     for j := 0 to n - 1 do
     begin
       if i <> j then
       begin
-        temp := Result[j][i];
+        vTemp := Result[j][i];
         for k := 0 to 2 * n - 1 do
-          Result[j][k] := Result[j][k] - temp * Result[i][k];
+          Result[j][k] := Result[j][k] - vTemp * Result[i][k];
       end;
     end;
   end;
@@ -128,7 +123,7 @@ begin
   end;
 end;
 
-function MatrixAdd(const A, B: TAISamplesAtr): TAISamplesAtr;
+function TRidgeRegression.MatrixAdd(const A, B: TAISamplesAtr): TAISamplesAtr;
 var
   i, j: Integer;
 begin
@@ -142,34 +137,33 @@ end;
 
 procedure TRidgeRegression.DoTrain;
 var
-  Xt, XtX, Ident, XtX_AlfaI, XtX_AlfaI_inv: TAISamplesAtr;
+  vXt, vXtX, vIdent, vXtX_AlfaI, vXtX_AlfaI_inv: TAISamplesAtr;
   XtY: TAISampleAtr;
   i: Integer;
   X: TAISamplesAtr; Y: TAILabelsRegression;
 begin
 
   SplitLabelAndSampleDataset(FDataset, X, Y);
-  Xt := MatrixTranspose(X);
+  vXt := MatrixTranspose(X);
 
-  XtX := MatrixMultiply(Xt, X);
+  vXtX := MatrixMultiply(vXt, X);
 
-  Ident := IdentityMatrix(Length(XtX));
-  for i := 0 to High(Ident) do begin
-    Ident[i][i] := Ident[i][i] * FAlfa;
+  vIdent := IdentityMatrix(Length(vXtX));
+  for i := 0 to High(vIdent) do begin
+    vIdent[i][i] := vIdent[i][i] * FAlfa;
   end;
 
-  XtX_AlfaI := MatrixAdd(XtX, Ident);
+  vXtX_AlfaI := MatrixAdd(vXtX, vIdent);
 
-  XtX_AlfaI_inv := MatrixInverse(XtX_AlfaI);
+  vXtX_AlfaI_inv := MatrixInverse(vXtX_AlfaI);
 
-  XtY := MatrixVectorMultiply(Xt, Y);
+  XtY := MatrixVectorMultiply(vXt, Y);
 
-  FCoefs := MatrixVectorMultiply(XtX_AlfaI_inv, XtY);
+  FCoefs := MatrixVectorMultiply(vXtX_AlfaI_inv, XtY);
 
   PopulateInputLenght;
   Trained := True;
 end;
-
 
 function TRidgeRegression.Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False) : Double;
 begin
@@ -183,22 +177,22 @@ end;
 
 function TRidgeRegression.ToJson: TJsonObject;
 var
-  JsonArray: TJsonArray;
-  JsonObj : TJSONObject;
+  vJsonArray: TJsonArray;
+  vJsonObj : TJSONObject;
   I: Integer;
 begin
   Result := TJSONObject.Create;
-  JsonObj := TJSONObject.Create;
+  vJsonObj := TJSONObject.Create;
 
   Result.AddPair('NormalizationRange', NormRangeToJSON);
   Result.AddPair('InputLength', TJSONNumber.Create(InputLength));
-  Result.AddPair('Model', JsonObj);
+  Result.AddPair('Model', vJsonObj);
 
-  JsonArray := TJsonArray.Create;
+  vJsonArray := TJsonArray.Create;
   for I := 0 to Length(FCoefs) - 1 do
-    JsonArray.Add(FCoefs[I]);
+    vJsonArray.Add(FCoefs[I]);
 
-  JsonObj.AddPair('coefficients', JsonArray);
+  vJsonObj.AddPair('coefficients', vJsonArray);
 end;
 
 procedure TRidgeRegression.Train(aTrainingData: TAIDatasetRegression;
@@ -239,65 +233,60 @@ end;
 
 procedure TRidgeRegression.FromJson(aJson: TJsonObject);
 var
-  JsonArray: TJsonArray;
+  vJsonArray: TJsonArray;
   I: Integer;
 begin
   InputLength := StrToInt(aJson.FindValue('InputLength').Value);
   JSONToNormRange(aJson.FindValue('NormalizationRange') as TJSONObject);
   aJson := aJson.FindValue('Model') as TJSONObject;
 
-  if aJson.TryGetValue<TJsonArray>('coefficients', JsonArray) then begin
-    SetLength(FCoefs, JsonArray.Count);
-    for I := 0 to JsonArray.Count - 1 do begin
-      FCoefs[I] := JsonArray.Items[I].AsType<Double>;
+  if aJson.TryGetValue<TJsonArray>('coefficients', vJsonArray) then begin
+    SetLength(FCoefs, vJsonArray.Count);
+    for I := 0 to vJsonArray.Count - 1 do begin
+      FCoefs[I] := vJsonArray.Items[I].AsType<Double>;
     end;
   end;
 
   Trained := True;
 end;
 
-procedure TRidgeRegression.SaveToFile(const FileName: string);
+procedure TRidgeRegression.SaveToFile(const aFileName: string);
 var
-  Json: TJsonObject;
-  JsonString: TStringList;
+  vJson: TJsonObject;
+  vJsonString: TStringList;
 begin
-  Json := ToJson;
+  vJson := ToJson;
   try
-    JsonString := TStringList.Create;
+    vJsonString := TStringList.Create;
     try
-      JsonString.Text := Json.ToString;
-      JsonString.SaveToFile(FileName);
+      vJsonString.Text := vJson.ToString;
+      vJsonString.SaveToFile(aFileName);
     finally
-      JsonString.Free;
+      vJsonString.Free;
     end;
   finally
-    Json.Free;
+    vJson.Free;
   end;
 end;
 
-procedure TRidgeRegression.LoadFromFile(const FileName: string);
+procedure TRidgeRegression.LoadFromFile(const aFileName: string);
 var
-  Json: TJsonObject;
-  JsonString: TStringList;
+  vJson: TJsonObject;
+  vJsonString: TStringList;
 begin
-  JsonString := TStringList.Create;
+  vJsonString := TStringList.Create;
   try
-    JsonString.LoadFromFile(FileName);
+    vJsonString.LoadFromFile(aFileName);
 
-    Json := TJsonObject.ParseJsonValue(JsonString.Text) as TJsonObject;
+    vJson := TJsonObject.ParseJsonValue(vJsonString.Text) as TJsonObject;
     try
-      FromJson(Json);
+      FromJson(vJson);
     finally
-      Json.Free;
+      vJson.Free;
     end;
   finally
-    JsonString.Free;
+    vJsonString.Free;
   end;
 end;
-
-
-
-
-
 
 end.

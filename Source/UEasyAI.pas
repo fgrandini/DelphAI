@@ -3,7 +3,12 @@ unit UEasyAI;
 interface
 
 uses
-  UAISelector, Winapi.Windows, Data.DB, UAITypes, Vcl.Graphics, System.Classes,
+  UAISelector,
+  Winapi.Windows,
+  Data.DB,
+  UAITypes,
+  Vcl.Graphics,
+  System.Classes,
   URecommender;
 
 type
@@ -13,69 +18,71 @@ type
   TEasyTestingMode = (tmFast, tmStandard, tmExtensive);
 
   TEasyAIClassification = class
-    private
-      FDataset : TAIDatasetClassification;
-      FNormalizationRange : TNormalizationRange;
-      FModel : TObject;
-    public
-      constructor Create;
-      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
-      procedure LoadDataset(aDataSet : TDataSet); overload;
-      procedure LoadFromFile(aPath : String);
-      procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
-      function Predict(aSample : TAISampleAtr) : String;
-      destructor Destroy; override;
+  private
+    FDataset : TAIDatasetClassification;
+    FNormalizationRange : TNormalizationRange;
+    FModel : TObject;
+  public
+    constructor Create;
+    procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
+    procedure LoadDataset(aDataSet : TDataSet); overload;
+    procedure LoadFromFile(aPath : String);
+    procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
+    function Predict(aSample : TAISampleAtr) : String;
+    destructor Destroy; override;
   end;
 
   TEasyAIRegression = class
-    private
-      FDataset : TAIDatasetRegression;
-      FModel : TObject;
-      FNormalizationRange : TNormalizationRange;
-    public
-      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
-      procedure LoadDataset(aDataSet : TDataSet); overload;
-      procedure LoadFromFile(aPath : String);
-      procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
-      function Predict(aSample : TAISampleAtr) : Double;
-      destructor Destroy; override;
+  private
+    FDataset : TAIDatasetRegression;
+    FModel : TObject;
+    FNormalizationRange : TNormalizationRange;
+  public
+    procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
+    procedure LoadDataset(aDataSet : TDataSet); overload;
+    procedure LoadFromFile(aPath : String);
+    procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
+    function Predict(aSample : TAISampleAtr) : Double;
+    destructor Destroy; override;
   end;
 
   TEasyAIRecommendationFromItem = class
-    private
-      FDataset : TAIDatasetRecommendation;
-      FModel : TRecommender;
-      FNormalizationRange : TNormalizationRange;
-      FItemsToRecommendCount : Integer;
-    public
-      constructor Create(aItemsToRecommendCount : Integer) ;
-      destructor Destroy; override;
-      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
-      procedure LoadDataset(aDataSet : TDataSet); overload;
-      procedure LoadFromFile(aPath : String);
-      procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
-      function RecommendItem(aFromItemSample : TAISampleAtr) : TArray<Integer>; overload;
-      function RecommendItem(aFromItemID : Integer) : TArray<Integer>; overload;
+  private
+    FDataset : TAIDatasetRecommendation;
+    FModel : TRecommender;
+    FNormalizationRange : TNormalizationRange;
+    FItemsToRecommendCount : Integer;
+  public
+    constructor Create(aItemsToRecommendCount : Integer) ;
+    destructor Destroy; override;
+    procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
+    procedure LoadDataset(aDataSet : TDataSet); overload;
+    procedure LoadFromFile(aPath : String);
+    procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
+    function RecommendItem(aFromItemSample : TAISampleAtr) : TArray<Integer>; overload;
+    function RecommendItem(aFromItemID : Integer) : TArray<Integer>; overload;
   end;
 
   TEasyAIRecommendationFromUser = class
-    private
-      FDataset : TAIDatasetRecommendation;
-      FModel : TRecommender;
-      FNormalizationRange : TNormalizationRange;
-      FItemsToRecommendCount : Integer;
-    public
-      constructor Create(aItemsToRecommendCount : Integer) ;
-      destructor Destroy; override;
-      procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
-      procedure LoadDataset(aDataSet : TDataSet); overload;
-      procedure LoadFromFile(aPath : String);
-      procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
-      function RecommendItem(aFromUserSample : TAISampleAtr) : TArray<Integer>; overload;
-      function RecommendItem(aFromUserID : Integer) : TArray<Integer>; overload;
+  private
+    FDataset : TAIDatasetRecommendation;
+    FModel : TRecommender;
+    FNormalizationRange : TNormalizationRange;
+    FItemsToRecommendCount : Integer;
+  public
+    constructor Create(aItemsToRecommendCount : Integer) ;
+    destructor Destroy; override;
+    procedure LoadDataset(aDataSet : String; aHasHeader : Boolean = True); overload;
+    procedure LoadDataset(aDataSet : TDataSet); overload;
+    procedure LoadFromFile(aPath : String);
+    procedure FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
+    function RecommendItem(aFromUserSample : TAISampleAtr) : TArray<Integer>; overload;
+    function RecommendItem(aFromUserID : Integer) : TArray<Integer>; overload;
   end;
 
   procedure ShowMessageNeedDataset(aNeed : Boolean = True);
+  function RemoveDuplicates(aInputArray: TArray<Integer>): TArray<Integer>;
+  function CalculaKNNValores(aSamples: Integer; aMode : TEasyTestingMode = tmFast): TArray<Integer>;
 
 implementation
 uses
@@ -84,9 +91,20 @@ uses
   {$ELSE}
   VCL.Dialogs,
   {$ENDIF}
-  UAuxGlobal, System.SysUtils, System.JSON, System.IOUtils,
-  UDecisionTree, UKNN, UNaiveBayes, ULinearRegression, URidgeRegression,
-  System.Math, System.Generics.Collections, System.Types, UError, UAIModel;
+  UAuxGlobal,
+  System.SysUtils,
+  System.JSON,
+  System.IOUtils,
+  UDecisionTree,
+  UKNN,
+  UNaiveBayes,
+  ULinearRegression,
+  URidgeRegression,
+  System.Math,
+  System.Generics.Collections,
+  System.Types,
+  UError,
+  UAIModel;
 
 { TEasyAIClassification }
 
@@ -112,68 +130,67 @@ begin
   end;
 end;
 
-function RemoveDuplicates(InputArray: TArray<Integer>): TArray<Integer>;
+function RemoveDuplicates(aInputArray: TArray<Integer>): TArray<Integer>;
 var
-  HashSet: TDictionary<Integer, Boolean>;
-  Number: Integer;
-  UniqueList: TList<Integer>;
+  vHashSet: TDictionary<Integer, Boolean>;
+  vNumber: Integer;
+  vUniqueList: TList<Integer>;
 begin
-  HashSet := TDictionary<Integer, Boolean>.Create;
-  UniqueList := TList<Integer>.Create;
+  vHashSet := TDictionary<Integer, Boolean>.Create;
+  vUniqueList := TList<Integer>.Create;
   try
-    for Number in InputArray do begin
-      if not HashSet.ContainsKey(Number) then
+    for vNumber in aInputArray do begin
+      if not vHashSet.ContainsKey(vNumber) then
       begin
-        HashSet.Add(Number, True);
-        UniqueList.Add(Number);
+        vHashSet.Add(vNumber, True);
+        vUniqueList.Add(vNumber);
       end;
     end;
-    Result := UniqueList.ToArray;
+    Result := vUniqueList.ToArray;
   finally
-    HashSet.Free;
-    UniqueList.Free;
+    vHashSet.Free;
+    vUniqueList.Free;
   end;
 end;
 
-
-function CalculaKNNValores(nAmostras: Integer; aMode : TEasyTestingMode = tmFast): TArray<Integer>;
+function CalculaKNNValores(aSamples: Integer; aMode : TEasyTestingMode = tmFast): TArray<Integer>;
 var
-  K, i, vIncremento : Integer;
+  K, i, vIncrease : Integer;
   vTempArray : TArray<Integer>;
 begin
   SetLength(Result, 10);
 
-  K := Trunc(Sqrt(nAmostras) / 2);
+  K := Trunc(Sqrt(aSamples) / 2);
   if K mod 2 = 0 then
-    Inc(K);  
+    Inc(K);
 
   Result[4] := K;
 
-  vIncremento := Trunc(0.2 * K); 
-  if vIncremento < 2 then begin
-    vIncremento := 2;
+  vIncrease := Trunc(0.2 * K);
+  if vIncrease < 2 then begin
+    vIncrease := 2;
   end;
-  if vIncremento mod 2 <> 0 then
-    Inc(vIncremento);  
+  if vIncrease mod 2 <> 0 then
+    Inc(vIncrease);
 
   for i := 3 downto 0 do
-    Result[i] := Result[i + 1] - vIncremento;
+    Result[i] := Result[i + 1] - vIncrease;
 
   for i := 5 to 9 do
-    Result[i] := Result[i - 1] + vIncremento;
+    Result[i] := Result[i - 1] + vIncrease;
 
   for i := 0 to 9 do begin
     if Result[i] mod 2 = 0 then begin
       Dec(Result[i]);
     end;
     if Result[i] < 1 then begin
-      Result[i] := 1;  
+      Result[i] := 1;
     end;
   end;
 
   for i := 0 to High(Result) do begin
-    if Result[i] >= nAmostras then begin
-      Result[i] := nAmostras-2;
+    if Result[i] >= aSamples then begin
+      Result[i] := aSamples-2;
     end;
   end;
 
@@ -202,7 +219,6 @@ begin
   Result := RemoveDuplicates(Result);
 end;
 
-
 destructor TEasyAIClassification.Destroy;
 begin
   FModel.Free;
@@ -211,38 +227,38 @@ end;
 
 procedure TEasyAIClassification.FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
 var
-  vIndiceMelhor,
-  vNumAmostras,
+  vBestIndex,
+  vNumSamples,
   i : Integer;
   vClassification : TAIClassificationSelector;
-  vMaiorAcuracia : Double;
+  vMoreAccuracy : Double;
   vBestModel : TAIClassificationTest;
   vJsonObj, vParamsObj: TJSONObject;
-  JSONString: string;
-  FileStream: TFileStream;
-  Bytes: TBytes;
+  vJSONString: string;
+  vFileStream: TFileStream;
+  vBytes: TBytes;
 begin
-  vNumAmostras := Length(FDataset);
+  vNumSamples := Length(FDataset);
   if Length(FDataset) <= 1 then begin
     raise Exception.Create(ERROR_EMPTY_Dataset_EASY_TRAIN);
   end;
   vClassification := TAIClassificationSelector.Create(FDataset, FNormalizationRange);
   try
     if aMode = tmStandard then begin
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras)), scGini);
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras)), scEntropy);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples)), scGini);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples)), scEntropy);
     end else if aMode = tmExtensive then begin
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras) / 2), scGini);
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras) / 2), scEntropy);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples) / 2), scGini);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples) / 2), scEntropy);
 
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras)), scGini);
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras)), scEntropy);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples)), scGini);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples)), scEntropy);
 
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras) * 2), scGini);
-      vClassification.Models.AddTree(Round(Log2(vNumAmostras) * 2), scEntropy);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples) * 2), scGini);
+      vClassification.Models.AddTree(Round(Log2(vNumSamples) * 2), scEntropy);
     end;
 
-    for i in CalculaKNNValores(vNumAmostras, aMode) do begin
+    for i in CalculaKNNValores(vNumSamples, aMode) do begin
       vClassification.Models.AddKNN(i);
     end;
 
@@ -250,18 +266,18 @@ begin
 
     vClassification.RunTests(aCsvResultModels, aLogFile, aMaxThreads);
 
-    vMaiorAcuracia := 0;
-    vIndiceMelhor := 0;
+    vMoreAccuracy := 0;
+    vBestIndex := 0;
     for i := 0 to vClassification.Models.LstModels.Count-1 do begin
-      if vClassification.Models.LstModels[i].Accuracy > vMaiorAcuracia then begin
-        vIndiceMelhor := i;
-        vMaiorAcuracia := vClassification.Models.LstModels[i].Accuracy;
+      if vClassification.Models.LstModels[i].Accuracy > vMoreAccuracy then begin
+        vBestIndex := i;
+        vMoreAccuracy := vClassification.Models.LstModels[i].Accuracy;
       end;
     end;
 
     vJsonObj := TJSONObject.Create;
     try
-      vBestModel := vClassification.Models.LstModels[vIndiceMelhor];
+      vBestModel := vClassification.Models.LstModels[vBestIndex];
       vJsonObj.AddPair('Precision', TJSONNumber.Create(vBestModel.Accuracy));
       if vBestModel is TAIClassificationModelKNN then begin
         ShowMessageNeedDataset;
@@ -284,14 +300,14 @@ begin
       end else begin
         raise Exception.Create('New model not defined in EasyAI.');
       end;
-      JSONString := vJsonObj.ToString;
-      Bytes := TEncoding.UTF8.GetBytes(JSONString);
+      vJSONString := vJsonObj.ToString;
+      vBytes := TEncoding.UTF8.GetBytes(vJSONString);
 
-      FileStream := TFileStream.Create(aPathResultFile, fmCreate);
+      vFileStream := TFileStream.Create(aPathResultFile, fmCreate);
       try
-        FileStream.Write(Bytes[0], Length(Bytes));
+        vFileStream.Write(vBytes[0], Length(vBytes));
       finally
-        FileStream.Free;
+        vFileStream.Free;
       end;
     finally
       vJsonObj.Free;
@@ -327,34 +343,34 @@ end;
 
 procedure TEasyAIClassification.LoadFromFile(aPath: String);
 var
-  JsonObj, ParamsObj: TJSONObject;
-  KValue: Integer;
+  vJsonObj, vParamsObj: TJSONObject;
+  vKValue: Integer;
   vJSONString,
   vModel : String;
 begin
   vJSONString := TFile.ReadAllText(aPath, TEncoding.UTF8);
-  JsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
+  vJsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
   try
-    if Assigned(JsonObj) then begin
-      vModel := JsonObj.GetValue('model').Value;
+    if Assigned(vJsonObj) then begin
+      vModel := vJsonObj.GetValue('model').Value;
       if (vModel = 'KNN') then begin
-        ParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
-        KValue := (ParamsObj.GetValue('K') as TJSONNumber).AsInt;
-        FModel := TKNNClassification.Create(FDataset, FNormalizationRange, KValue);
+        vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
+        vKValue := (vParamsObj.GetValue('K') as TJSONNumber).AsInt;
+        FModel := TKNNClassification.Create(FDataset, FNormalizationRange, vKValue);
       end else if (vModel = 'DecisionTree') then begin
-        ParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
+        vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
         FModel := TDecisionTree.Create(0, scEntropy);
-        TDecisionTree(FModel).LoadFromJson(TJSONObject(ParamsObj.GetValue('Structure')));
+        TDecisionTree(FModel).LoadFromJson(TJSONObject(vParamsObj.GetValue('Structure')));
       end else if (vModel = 'GaussianNaive') then begin
-        ParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
+        vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
         FModel := TGaussianNaiveBayes.Create;
-        TGaussianNaiveBayes(FModel).LoadFromJSONObject(ParamsObj.GetValue('TrainedValues') as TJSONObject);
+        TGaussianNaiveBayes(FModel).LoadFromJSONObject(vParamsObj.GetValue('TrainedValues') as TJSONObject);
       end else begin
         raise Exception.Create('Incorrect model on JSON.');
       end;
     end;
   finally
-    JsonObj.Free;
+    vJsonObj.Free;
   end;
 end;
 
@@ -381,25 +397,25 @@ end;
 
 procedure TEasyAIRegression.FindBestModel(aPathResultFile: String; aMode : TEasyTestingMode = tmStandard; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
 var
-  vNumAmostras,
+  vNumSamples,
   i : Integer;
   vRegression : TAIRegressionSelector;
   vBestScore, vScore : Double;
   vModel, vBestModel : TAIRegressionTest;
   vJsonObj, vParamsObj: TJSONObject;
-  JSONString: string;
-  FileStream: TFileStream;
-  Bytes: TBytes;
+  vJSONString: string;
+  vFileStream: TFileStream;
+  vBytes: TBytes;
   vNormalizedScores : array of Double;
-  MinMAE, MaxMAE, MinMSE, MaxMSE, MinRMSE, MaxRMSE, MinR2, MaxR2: Double;
+  vMinMAE, vMaxMAE, vMinMSE, vMaxMSE, vMinRMSE, vMaxRMSE, vMinR2, vMaxR2: Double;
 begin
-  vNumAmostras := Length(FDataset);
+  vNumSamples := Length(FDataset);
   if Length(FDataset) <= 1 then begin
     raise Exception.Create(ERROR_EMPTY_Dataset_EASY_TRAIN);
   end;
   vRegression := TAIRegressionSelector.Create(FDataset, FNormalizationRange);
   try
-    for i in CalculaKNNValores(vNumAmostras, aMode) do begin
+    for i in CalculaKNNValores(vNumSamples, aMode) do begin
       vRegression.Models.AddKNN(i);
     end;
     vRegression.Models.AddLinearRegression;
@@ -433,23 +449,23 @@ begin
 
     vRegression.RunTests(aCsvResultModels, aLogFile, aMaxThreads);
 
-    MinMAE := MaxDouble; MaxMAE := -MaxDouble;
-    MinMSE := MaxDouble; MaxMSE := -MaxDouble;
-    MinRMSE := MaxDouble; MaxRMSE := -MaxDouble;
-    MinR2 := MaxDouble; MaxR2 := -MaxDouble;
+    vMinMAE := MaxDouble; vMaxMAE := -MaxDouble;
+    vMinMSE := MaxDouble; vMaxMSE := -MaxDouble;
+    vMinRMSE := MaxDouble; vMaxRMSE := -MaxDouble;
+    vMinR2 := MaxDouble; vMaxR2 := -MaxDouble;
 
     for vModel in vRegression.Models.LstModels do begin
-      if vModel.MAE < MinMAE then MinMAE := vModel.MAE;
-      if vModel.MAE > MaxMAE then MaxMAE := vModel.MAE;
+      if vModel.MAE < vMinMAE then vMinMAE := vModel.MAE;
+      if vModel.MAE > vMaxMAE then vMaxMAE := vModel.MAE;
 
-      if vModel.MSE < MinMSE then MinMSE := vModel.MSE;
-      if vModel.MSE > MaxMSE then MaxMSE := vModel.MSE;
+      if vModel.MSE < vMinMSE then vMinMSE := vModel.MSE;
+      if vModel.MSE > vMaxMSE then vMaxMSE := vModel.MSE;
 
-      if vModel.RMSE < MinRMSE then MinRMSE := vModel.RMSE;
-      if vModel.RMSE > MaxRMSE then MaxRMSE := vModel.RMSE;
+      if vModel.RMSE < vMinRMSE then vMinRMSE := vModel.RMSE;
+      if vModel.RMSE > vMaxRMSE then vMaxRMSE := vModel.RMSE;
 
-      if vModel.R2 < MinR2 then MinR2 := vModel.R2;
-      if vModel.R2 > MaxR2 then MaxR2 := vModel.R2;
+      if vModel.R2 < vMinR2 then vMinR2 := vModel.R2;
+      if vModel.R2 > vMaxR2 then vMaxR2 := vModel.R2;
     end;
 
 
@@ -460,28 +476,28 @@ begin
       vModel := vRegression.Models.LstModels[I];
 
       vNormalizedScores[I] := 0;
-      if MaxMAE - MinMAE = 0 then begin
+      if vMaxMAE - vMinMAE = 0 then begin
         vNormalizedScores[I] := vNormalizedScores[I] + 1;
       end else begin
-        vNormalizedScores[I] := vNormalizedScores[I] + (1 - (vModel.MAE - MinMAE) / (MaxMAE - MinMAE));
+        vNormalizedScores[I] := vNormalizedScores[I] + (1 - (vModel.MAE - vMinMAE) / (vMaxMAE - vMinMAE));
       end;
 
-      if MaxMSE - MinMSE = 0 then begin
+      if vMaxMSE - vMinMSE = 0 then begin
         vNormalizedScores[I] := vNormalizedScores[I] + 1;
       end else begin
-        vNormalizedScores[I] := vNormalizedScores[I] + (1 - (vModel.MSE - MinMSE) / (MaxMSE - MinMSE));
+        vNormalizedScores[I] := vNormalizedScores[I] + (1 - (vModel.MSE - vMinMSE) / (vMaxMSE - vMinMSE));
       end;
 
-      if MaxRMSE - MinRMSE = 0 then begin
+      if vMaxRMSE - vMinRMSE = 0 then begin
         vNormalizedScores[I] := vNormalizedScores[I] + 1;
       end else begin
-        vNormalizedScores[I] := vNormalizedScores[I] + (1 - (vModel.RMSE - MinRMSE) / (MaxRMSE - MinRMSE));
+        vNormalizedScores[I] := vNormalizedScores[I] + (1 - (vModel.RMSE - vMinRMSE) / (vMaxRMSE - vMinRMSE));
       end;
 
-      if MaxR2 - MinR2 = 0 then begin
+      if vMaxR2 - vMinR2 = 0 then begin
         vNormalizedScores[I] := vNormalizedScores[I] + 1;
       end else begin
-        vNormalizedScores[I] := vNormalizedScores[I] + (1 - ((vModel.R2 - MinR2) / (MaxR2 - MinR2)));
+        vNormalizedScores[I] := vNormalizedScores[I] + (1 - ((vModel.R2 - vMinR2) / (vMaxR2 - vMinR2)));
       end;
 
       vScore := vNormalizedScores[I] / 4;
@@ -516,14 +532,14 @@ begin
       end else begin
         raise Exception.Create('New model not defined in EasyAI.');
       end;
-      JSONString := vJsonObj.ToString;
-      Bytes := TEncoding.UTF8.GetBytes(JSONString);
+      vJSONString := vJsonObj.ToString;
+      vBytes := TEncoding.UTF8.GetBytes(vJSONString);
 
-      FileStream := TFileStream.Create(aPathResultFile, fmCreate);
+      vFileStream := TFileStream.Create(aPathResultFile, fmCreate);
       try
-        FileStream.Write(Bytes[0], Length(Bytes));
+        vFileStream.Write(vBytes[0], Length(vBytes));
       finally
-        FileStream.Free;
+        vFileStream.Free;
       end;
     finally
       vJsonObj.Free;
@@ -559,34 +575,34 @@ end;
 
 procedure TEasyAIRegression.LoadFromFile(aPath: String);
 var
-  JsonObj, ParamsObj: TJSONObject;
-  KValue: Integer;
+  vJsonObj, vParamsObj: TJSONObject;
+  vKValue: Integer;
   vJSONString,
   vModel : String;
 begin
   vJSONString := TFile.ReadAllText(aPath, TEncoding.UTF8);
-  JsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
+  vJsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
   try
-    if Assigned(JsonObj) then begin
-      vModel := JsonObj.GetValue('model').Value;
+    if Assigned(vJsonObj) then begin
+      vModel := vJsonObj.GetValue('model').Value;
       if (vModel = 'KNN') then begin
-        ParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
-        KValue := (ParamsObj.GetValue('K') as TJSONNumber).AsInt;
-        FModel := TKNNRegression.Create(FDataset, FNormalizationRange, KValue);
+        vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
+        vKValue := (vParamsObj.GetValue('K') as TJSONNumber).AsInt;
+        FModel := TKNNRegression.Create(FDataset, FNormalizationRange, vKValue);
       end else if (vModel = 'LinearRegression') then begin
-        ParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
+        vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
         FModel := TLinearRegression.Create;
-        TLinearRegression(FModel).FromJson(ParamsObj.GetValue('TrainedValues') as TJSONObject);
+        TLinearRegression(FModel).FromJson(vParamsObj.GetValue('TrainedValues') as TJSONObject);
       end else if (vModel = 'Ridge') then begin
-        ParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
+        vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
         FModel := TRidgeRegression.Create;
-        TRidgeRegression(FModel).FromJson(ParamsObj.GetValue('TrainedValues') as TJSONObject);
+        TRidgeRegression(FModel).FromJson(vParamsObj.GetValue('TrainedValues') as TJSONObject);
       end else begin
         raise Exception.Create('Incorrect model on JSON.');
       end;
     end;
   finally
-    JsonObj.Free;
+    vJsonObj.Free;
   end;
 end;
 
@@ -618,16 +634,16 @@ end;
 
 procedure FindBestModelRec(aDataset : TAIDatasetRecommendation; aNormalizationRange : TNormalizationRange; aItemsToRecommendCount : Integer; aPathResultFile: String;  aMode : TEasyTestingMode; aItem : Boolean; aMaxThreads : Integer = 0; aCsvResultModels : String = ''; aLogFile : String = '');
 var
-  vIndiceMelhor,
-  vNumAmostras,
+  vBestIndex,
+  vNumSamples,
   i, vK : Integer;
   vRecommendation : TAIRecommendationSelector;
-  vMaiorAcuracia : Double;
+  vMoreAccuracy : Double;
   vBestModel : TAIRecommendationModel;
   vJsonObj, vParamsObj: TJSONObject;
-  JSONString: string;
-  FileStream: TFileStream;
-  Bytes: TBytes;
+  vJSONString: string;
+  vFileStream: TFileStream;
+  vBytes: TBytes;
 
   procedure _AddModel(aK: Integer;
                       aAggregMethod: TUserScoreAggregationMethod; aDistanceMethod: TDistanceMode; aItem : Boolean = False);
@@ -644,8 +660,8 @@ begin
   if Length(aDataset) <= 1 then begin
     raise Exception.Create(ERROR_EMPTY_Dataset_EASY_TRAIN);
   end;
-  vNumAmostras := Length(aDataset);
-  if vNumAmostras = 0 then begin
+  vNumSamples := Length(aDataset);
+  if vNumSamples = 0 then begin
     raise Exception.Create('No Dataset loaded.');
   end;
   vRecommendation := TAIRecommendationSelector.Create(aDataset, aNormalizationRange);
@@ -672,7 +688,7 @@ begin
         _AddModel(0, TUserScoreAggregationMethod.amMode, TDistanceMode.dmJaccard, aItem);
         _AddModel(0, TUserScoreAggregationMethod.amMode, TDistanceMode.dmPearson, aItem);
       end else begin
-        for vK in CalculaKNNValores(Length(aDataset), tmFast) do begin 
+        for vK in CalculaKNNValores(Length(aDataset), tmFast) do begin
           _AddModel(vK, TUserScoreAggregationMethod.amMode,           TDistanceMode.dmCosine, aItem);
           _AddModel(vK, TUserScoreAggregationMethod.amWeightedAverage, TDistanceMode.dmCosine, aItem);
           _AddModel(vK, TUserScoreAggregationMethod.amSimpleSum,    TDistanceMode.dmCosine, aItem);
@@ -686,7 +702,7 @@ begin
         _AddModel(0, TUserScoreAggregationMethod.amMode, TDistanceMode.dmJaccard, aItem);
         _AddModel(0, TUserScoreAggregationMethod.amMode, TDistanceMode.dmPearson, aItem);
       end else begin
-        for vK in CalculaKNNValores(Length(aDataset), tmFast) do begin 
+        for vK in CalculaKNNValores(Length(aDataset), tmFast) do begin
           _AddModel(vK, TUserScoreAggregationMethod.amMode, TDistanceMode.dmManhattan, aItem);
           _AddModel(vK, TUserScoreAggregationMethod.amMode, TDistanceMode.dmEuclidean, aItem);
           _AddModel(vK, TUserScoreAggregationMethod.amMode, TDistanceMode.dmCosine, aItem);
@@ -717,18 +733,18 @@ begin
       vRecommendation.RunTestsUserUser(aCsvResultModels, aLogFile, aMaxThreads);
     end;
 
-    vMaiorAcuracia := 0;
-    vIndiceMelhor := 0;
+    vMoreAccuracy := 0;
+    vBestIndex := 0;
     for i := 0 to vRecommendation.Models.LstModels.Count-1 do begin
-      if vRecommendation.Models.LstModels[i].Accuracy > vMaiorAcuracia then begin
-        vIndiceMelhor := i;
-        vMaiorAcuracia := vRecommendation.Models.LstModels[i].Accuracy;
+      if vRecommendation.Models.LstModels[i].Accuracy > vMoreAccuracy then begin
+        vBestIndex := i;
+        vMoreAccuracy := vRecommendation.Models.LstModels[i].Accuracy;
       end;
     end;
 
     vJsonObj := TJSONObject.Create;
     try
-      vBestModel := vRecommendation.Models.LstModels[vIndiceMelhor];
+      vBestModel := vRecommendation.Models.LstModels[vBestIndex];
       ShowMessageNeedDataset;
       vJsonObj.AddPair('Precision', TJSONNumber.Create(vBestModel.Accuracy));
       if aItem then begin
@@ -745,14 +761,14 @@ begin
       vParamsObj.AddPair('DistanceMethod', TJSONNumber.Create(Ord(vBestModel.Model.DistanceMethod)));
 
       vJsonObj.AddPair('parameters', vParamsObj);
-      JSONString := vJsonObj.ToString;
-      Bytes := TEncoding.UTF8.GetBytes(JSONString);
+      vJSONString := vJsonObj.ToString;
+      vBytes := TEncoding.UTF8.GetBytes(vJSONString);
 
-      FileStream := TFileStream.Create(aPathResultFile, fmCreate);
+      vFileStream := TFileStream.Create(aPathResultFile, fmCreate);
       try
-        FileStream.Write(Bytes[0], Length(Bytes));
+        vFileStream.Write(vBytes[0], Length(vBytes));
       finally
-        FileStream.Free;
+        vFileStream.Free;
       end;
     finally
       vJsonObj.Free;
@@ -801,23 +817,23 @@ end;
 
 procedure TEasyAIRecommendationFromItem.LoadFromFile(aPath: String);
 var
-  JsonObj, vParamsObj: TJSONObject;
+  vJsonObj, vParamsObj: TJSONObject;
   vJSONString,
   vModel : String;
 begin
   vJSONString := TFile.ReadAllText(aPath, TEncoding.UTF8);
-  JsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
+  vJsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
   try
-    if Assigned(JsonObj) then begin
-      vModel := JsonObj.GetValue('From').Value;
-      vParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
+    if Assigned(vJsonObj) then begin
+      vModel := vJsonObj.GetValue('From').Value;
+      vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
       FModel := TRecommender.Create(FDataset, FNormalizationRange, StrToInt(vParamsObj.GetValue('ItemsToRecommendCount').Value),
                                     StrToInt(vParamsObj.GetValue('K').Value),
                                     TUserScoreAggregationMethod.amMode,
                                     TDistanceMode(StrToInt(vParamsObj.GetValue('DistanceMethod').Value)), False);
     end;
   finally
-    JsonObj.Free;
+    vJsonObj.Free;
   end;
 end;
 
@@ -839,8 +855,7 @@ end;
 
 { TEasyAIRecommendationFromUser }
 
-constructor TEasyAIRecommendationFromUser.Create(
-  aItemsToRecommendCount: Integer);
+constructor TEasyAIRecommendationFromUser.Create(aItemsToRecommendCount: Integer);
 begin
   FItemsToRecommendCount := aItemsToRecommendCount;
 end;
@@ -883,23 +898,23 @@ end;
 
 procedure TEasyAIRecommendationFromUser.LoadFromFile(aPath: String);
 var
-  JsonObj, vParamsObj: TJSONObject;
+  vJsonObj, vParamsObj: TJSONObject;
   vJSONString,
   vModel : String;
 begin
   vJSONString := TFile.ReadAllText(aPath, TEncoding.UTF8);
-  JsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
+  vJsonObj := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
   try
-    if Assigned(JsonObj) then begin
-      vModel := JsonObj.GetValue('From').Value;
-      vParamsObj := JsonObj.GetValue('parameters') as TJSONObject;
+    if Assigned(vJsonObj) then begin
+      vModel := vJsonObj.GetValue('From').Value;
+      vParamsObj := vJsonObj.GetValue('parameters') as TJSONObject;
       FModel := TRecommender.Create(FDataset, FNormalizationRange, StrToInt(vParamsObj.GetValue('ItemsToRecommendCount').Value),
                                     StrToInt(vParamsObj.GetValue('K').Value),
                                     TUserScoreAggregationMethod(StrToInt(vParamsObj.GetValue('AggregMethod').Value)),
                                     TDistanceMode(StrToInt(vParamsObj.GetValue('DistanceMethod').Value)), False);
     end;
   finally
-    JsonObj.Free;
+    vJsonObj.Free;
   end;
 
 end;

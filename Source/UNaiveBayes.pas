@@ -23,9 +23,9 @@ type
     procedure Train(aTrainingData : TDataSet); overload;
     function Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False): string;
     function ToJSONObject: TJSONObject;
-    procedure SaveToFile(const FileName: string);
-    procedure LoadFromFile(const FileName: string);
-    procedure LoadFromJSONObject(JsonObj: TJSONObject);
+    procedure SaveToFile(const aFileName: string);
+    procedure LoadFromFile(const aFileName: string);
+    procedure LoadFromJSONObject(aJsonObj: TJSONObject);
     constructor Create; overload;
     constructor Create(aTrainedFile : String); overload;
     destructor Destroy; override;
@@ -41,79 +41,79 @@ uses
 
 procedure TGaussianNaiveBayes.CalculateClassStatistics(const Dataset: TAIDatasetClassification);
 var
-  ClassCount: TDictionary<string, Integer>;
-  Sum, SumSquare: TDictionary<string, TAISampleAtr>;
-  Sample: TAISampleClassification;
+  vClassCount: TDictionary<string, Integer>;
+  vSum, vSumSquare: TDictionary<string, TAISampleAtr>;
+  vSample: TAISampleClassification;
   i : Integer;
-  TempArray: TAISampleAtr;
-  Count: Integer;
-  Mean, Variance: TAISampleAtr;
+  vTempArray: TAISampleAtr;
+  vCount: Integer;
+  vMean, vVariance: TAISampleAtr;
 begin
-  ClassCount := TDictionary<string, Integer>.Create;
-  Sum := TDictionary<string, TAISampleAtr>.Create;
-  SumSquare := TDictionary<string, TAISampleAtr>.Create;
+  vClassCount := TDictionary<string, Integer>.Create;
+  vSum := TDictionary<string, TAISampleAtr>.Create;
+  vSumSquare := TDictionary<string, TAISampleAtr>.Create;
 
   try
-    for Sample in Dataset do
+    for vSample in Dataset do
     begin
-      if not ClassCount.ContainsKey(Sample.Value) then
+      if not vClassCount.ContainsKey(vSample.Value) then
       begin
-        ClassCount.Add(Sample.Value, 0);
-        Sum.Add(Sample.Value, TArray<Double>.Create());
-        SumSquare.Add(Sample.Value, TArray<Double>.Create());
+        vClassCount.Add(vSample.Value, 0);
+        vSum.Add(vSample.Value, TArray<Double>.Create());
+        vSumSquare.Add(vSample.Value, TArray<Double>.Create());
       end;
     end;
 
-    for Sample in Dataset do
+    for vSample in Dataset do
     begin
-      ClassCount[Sample.Value] := ClassCount[Sample.Value] + 1;
+      vClassCount[vSample.Value] := vClassCount[vSample.Value] + 1;
 
-      TempArray := Sum[Sample.Value];
-      for i := 0 to Length(Sample.Key) - 1 do
+      vTempArray := vSum[vSample.Value];
+      for i := 0 to Length(vSample.Key) - 1 do
       begin
-        if i >= Length(TempArray) then
+        if i >= Length(vTempArray) then
         begin
-          SetLength(TempArray, i + 1);
+          SetLength(vTempArray, i + 1);
         end;
-        TempArray[i] := TempArray[i] + Sample.Key[i];
+        vTempArray[i] := vTempArray[i] + vSample.Key[i];
       end;
-      Sum[Sample.Value] := TempArray;
+      vSum[vSample.Value] := vTempArray;
 
-      TempArray := SumSquare[Sample.Value];
-      for i := 0 to Length(Sample.Key) - 1 do
+      vTempArray := vSumSquare[vSample.Value];
+      for i := 0 to Length(vSample.Key) - 1 do
       begin
-        if i >= Length(TempArray) then
+        if i >= Length(vTempArray) then
         begin
-          SetLength(TempArray, i + 1);
+          SetLength(vTempArray, i + 1);
         end;
-        TempArray[i] := TempArray[i] + Sqr(Sample.Key[i]);
+        vTempArray[i] := vTempArray[i] + Sqr(vSample.Key[i]);
       end;
-      SumSquare[Sample.Value] := TempArray;
+      vSumSquare[vSample.Value] := vTempArray;
     end;
 
-    for Sample in Dataset do
+    for vSample in Dataset do
     begin
-      Count := ClassCount[Sample.Value];
-      Mean := TArray<Double>.Create();
-      Variance := TArray<Double>.Create();
+      vCount := vClassCount[vSample.Value];
+      vMean := TArray<Double>.Create();
+      vVariance := TArray<Double>.Create();
 
-      for i := 0 to Length(Sum[Sample.Value]) - 1 do
+      for i := 0 to Length(vSum[vSample.Value]) - 1 do
       begin
-        SetLength(Mean, i + 1);
-        SetLength(Variance, i + 1);
+        SetLength(vMean, i + 1);
+        SetLength(vVariance, i + 1);
 
-        Mean[i] := Sum[Sample.Value][i] / Count;
-        Variance[i] := (SumSquare[Sample.Value][i] / Count) - Sqr(Mean[i]);
+        vMean[i] := vSum[vSample.Value][i] / vCount;
+        vVariance[i] := (vSumSquare[vSample.Value][i] / vCount) - Sqr(vMean[i]);
       end;
 
-      FMeans.AddOrSetValue(Sample.Value, Mean);
-      FVariances.AddOrSetValue(Sample.Value, Variance);
+      FMeans.AddOrSetValue(vSample.Value, vMean);
+      FVariances.AddOrSetValue(vSample.Value, vVariance);
     end;
 
   finally
-    ClassCount.Free;
-    Sum.Free;
-    SumSquare.Free;
+    vClassCount.Free;
+    vSum.Free;
+    vSumSquare.Free;
   end;
 end;
 
@@ -144,76 +144,76 @@ end;
 
 function TGaussianNaiveBayes.Predict(aSample : TAISampleAtr; aInputNormalized : Boolean = False): string;
 var
-  ClassLabel: string;
-  Probability, MaxProbability: Double;
-  Mean, Variance: TAISampleAtr;
+  vClassLabel: string;
+  vProbability, vMaxProbability: Double;
+  vMean, vVariance: TAISampleAtr;
   i: Integer;
-  BestClass: string;
+  vBestClass: string;
 begin
   aSample := Copy(aSample);
   if not aInputNormalized then begin
     ValidateAndNormalizeInput(aSample);
   end;
-  MaxProbability := -Infinity;
+  vMaxProbability := -Infinity;
 
-  for ClassLabel in FClasses.Keys do
+  for vClassLabel in FClasses.Keys do
   begin
-    Probability := FClassProbabilities[ClassLabel];
-    Mean := FMeans[ClassLabel];
-    Variance := FVariances[ClassLabel];
+    vProbability := FClassProbabilities[vClassLabel];
+    vMean := FMeans[vClassLabel];
+    vVariance := FVariances[vClassLabel];
 
     for i := 0 to Length(aSample) - 1 do
-      Probability := Probability * GaussianProbability(aSample[i], Mean[i], Variance[i]);
+      vProbability := vProbability * GaussianProbability(aSample[i], vMean[i], vVariance[i]);
 
-    if Probability > MaxProbability then
+    if vProbability > vMaxProbability then
     begin
-      MaxProbability := Probability;
-      BestClass := ClassLabel;
+      vMaxProbability := vProbability;
+      vBestClass := vClassLabel;
     end;
   end;
 
-  Result := BestClass;
+  Result := vBestClass;
 end;
 
 function TGaussianNaiveBayes.ToJSONObject: TJSONObject;
 var
   vRoot,
-  JsonObj, MeanObj, VarianceObj: TJSONObject;
-  ClassLabel: string;
-  MeanArray, VarianceArray: TJSONArray;
+  vJsonObj, vMeanObj, vVarianceObj: TJSONObject;
+  vClassLabel: string;
+  vMeanArray, vVarianceArray: TJSONArray;
   i: Integer;
 begin
   vRoot := TJSONObject.Create;
-  JsonObj := TJSONObject.Create;
+  vJsonObj := TJSONObject.Create;
 
   vRoot.AddPair('NormalizationRange', NormRangeToJSON);
   vRoot.AddPair('InputLength', TJSONNumber.Create(InputLength));
-  vRoot.AddPair('Model', JsonObj);
+  vRoot.AddPair('Model', vJsonObj);
 
-  for ClassLabel in FClassProbabilities.Keys do
+  for vClassLabel in FClassProbabilities.Keys do
   begin
-    JsonObj.AddPair(ClassLabel + '_probability', TJSONNumber.Create(FClassProbabilities[ClassLabel]));
-    JsonObj.AddPair(ClassLabel + '_count', TJSONNumber.Create(FClasses[ClassLabel])); 
+    vJsonObj.AddPair(vClassLabel + '_probability', TJSONNumber.Create(FClassProbabilities[vClassLabel]));
+    vJsonObj.AddPair(vClassLabel + '_count', TJSONNumber.Create(FClasses[vClassLabel]));
   end;
 
-  for ClassLabel in FMeans.Keys do
+  for vClassLabel in FMeans.Keys do
   begin
-    MeanArray := TJSONArray.Create;
-    VarianceArray := TJSONArray.Create;
+    vMeanArray := TJSONArray.Create;
+    vVarianceArray := TJSONArray.Create;
 
-    for i := 0 to Length(FMeans[ClassLabel]) - 1 do
+    for i := 0 to Length(FMeans[vClassLabel]) - 1 do
     begin
-      MeanArray.Add(FMeans[ClassLabel][i]);
-      VarianceArray.Add(FVariances[ClassLabel][i]);
+      vMeanArray.Add(FMeans[vClassLabel][i]);
+      vVarianceArray.Add(FVariances[vClassLabel][i]);
     end;
 
-    MeanObj := TJSONObject.Create;
-    MeanObj.AddPair('mean', MeanArray);
-    JsonObj.AddPair(ClassLabel + '_mean', MeanObj);
+    vMeanObj := TJSONObject.Create;
+    vMeanObj.AddPair('mean', vMeanArray);
+    vJsonObj.AddPair(vClassLabel + '_mean', vMeanObj);
 
-    VarianceObj := TJSONObject.Create;
-    VarianceObj.AddPair('variance', VarianceArray);
-    JsonObj.AddPair(ClassLabel + '_variance', VarianceObj);
+    vVarianceObj := TJSONObject.Create;
+    vVarianceObj.AddPair('variance', vVarianceArray);
+    vJsonObj.AddPair(vClassLabel + '_variance', vVarianceObj);
   end;
 
   Result := vRoot;
@@ -280,105 +280,100 @@ begin
   DoTrain;
 end;
 
-procedure TGaussianNaiveBayes.SaveToFile(const FileName: string);
+procedure TGaussianNaiveBayes.SaveToFile(const aFileName: string);
 var
-  JsonObj: TJSONObject;
-  JsonString: TStringList;
+  vJsonObj: TJSONObject;
+  vJsonString: TStringList;
 begin
-  JsonObj := ToJSONObject;
+  vJsonObj := ToJSONObject;
   try
-    JsonString := TStringList.Create;
+    vJsonString := TStringList.Create;
     try
-      JsonString.Text := JsonObj.ToString;
-      JsonString.SaveToFile(FileName);
+      vJsonString.Text := vJsonObj.ToString;
+      vJsonString.SaveToFile(aFileName);
     finally
-      JsonString.Free;
+      vJsonString.Free;
     end;
   finally
-    JsonObj.Free;
+    vJsonObj.Free;
   end;
 end;
 
-procedure TGaussianNaiveBayes.LoadFromFile(const FileName: string);
+procedure TGaussianNaiveBayes.LoadFromFile(const aFileName: string);
 var
-  JsonString: TStringList;
-  JsonObj: TJSONObject;
+  vJsonString: TStringList;
+  vJsonObj: TJSONObject;
 begin
-  JsonString := TStringList.Create;
+  vJsonString := TStringList.Create;
   try
-    JsonString.LoadFromFile(FileName);
-    JsonObj := TJSONObject.ParseJSONValue(JsonString.Text) as TJSONObject;
+    vJsonString.LoadFromFile(aFileName);
+    vJsonObj := TJSONObject.ParseJSONValue(vJsonString.Text) as TJSONObject;
     try
-      if JsonObj <> nil then begin
-        LoadFromJSONObject(JsonObj);  
+      if vJsonObj <> nil then begin
+        LoadFromJSONObject(vJsonObj);
       end;
     finally
-      JsonObj.Free;
+      vJsonObj.Free;
     end;
   finally
-    JsonString.Free;
+    vJsonString.Free;
   end;
 end;
 
-procedure TGaussianNaiveBayes.LoadFromJSONObject(JsonObj: TJSONObject);
+procedure TGaussianNaiveBayes.LoadFromJSONObject(aJsonObj: TJSONObject);
 var
-  MeanObj, VarianceObj: TJSONObject;
-  MeanArray, VarianceArray: TJSONArray;
-  ClassLabel: string;
+  vMeanObj, vVarianceObj: TJSONObject;
+  vMeanArray, vVarianceArray: TJSONArray;
+  vClassLabel: string;
   i: Integer;
-  TempArray: TAISampleAtr;
-  JsonPair: TJSONPair;
+  vTempArray: TAISampleAtr;
+  vJsonPair: TJSONPair;
 begin
-
-  InputLength := StrToInt(JsonObj.FindValue('InputLength').Value);
-  JSONToNormRange(JsonObj.FindValue('NormalizationRange') as TJSONObject);
-  JsonObj := JsonObj.FindValue('Model') as TJSONObject;
+  InputLength := StrToInt(aJsonObj.FindValue('InputLength').Value);
+  JSONToNormRange(aJsonObj.FindValue('NormalizationRange') as TJSONObject);
+  aJsonObj := aJsonObj.FindValue('Model') as TJSONObject;
 
   FClasses := TDictionary<string, Integer>.Create;
   FClassProbabilities := TDictionary<string, Double>.Create;
   FMeans := TDictionary<string, TAISampleAtr>.Create;
   FVariances := TDictionary<string, TAISampleAtr>.Create;
 
-  for JsonPair in JsonObj do begin
-    ClassLabel := JsonPair.JsonString.Value;
+  for vJsonPair in aJsonObj do begin
+    vClassLabel := vJsonPair.JsonString.Value;
 
-    if ClassLabel.EndsWith('_count') then begin
-      FClasses.AddOrSetValue(ClassLabel.Replace('_count', ''), JsonPair.JsonValue.AsType<Integer>);
+    if vClassLabel.EndsWith('_count') then begin
+      FClasses.AddOrSetValue(vClassLabel.Replace('_count', ''), vJsonPair.JsonValue.AsType<Integer>);
     end
-    else if ClassLabel.EndsWith('_probability') then begin
-      FClassProbabilities.AddOrSetValue(ClassLabel.Replace('_probability', ''), JsonPair.JsonValue.AsType<Double>);
+    else if vClassLabel.EndsWith('_probability') then begin
+      FClassProbabilities.AddOrSetValue(vClassLabel.Replace('_probability', ''), vJsonPair.JsonValue.AsType<Double>);
     end;
   end;
 
-  for ClassLabel in FClasses.Keys do begin
-    MeanObj := JsonObj.GetValue(ClassLabel + '_mean') as TJSONObject;
-    VarianceObj := JsonObj.GetValue(ClassLabel + '_variance') as TJSONObject;
+  for vClassLabel in FClasses.Keys do begin
+    vMeanObj := aJsonObj.GetValue(vClassLabel + '_mean') as TJSONObject;
+    vVarianceObj := aJsonObj.GetValue(vClassLabel + '_variance') as TJSONObject;
 
-    MeanArray := MeanObj.GetValue('mean') as TJSONArray;
-    VarianceArray := VarianceObj.GetValue('variance') as TJSONArray;
+    vMeanArray := vMeanObj.GetValue('mean') as TJSONArray;
+    vVarianceArray := vVarianceObj.GetValue('variance') as TJSONArray;
 
 
-    SetLength(TempArray, MeanArray.Count);
-    for i := 0 to MeanArray.Count - 1 do
+    SetLength(vTempArray, vMeanArray.Count);
+    for i := 0 to vMeanArray.Count - 1 do
     begin
-      TempArray[i] := MeanArray.Items[i].AsType<Double>;
+      vTempArray[i] := vMeanArray.Items[i].AsType<Double>;
     end;
-    FMeans.AddOrSetValue(ClassLabel, TempArray);
+    FMeans.AddOrSetValue(vClassLabel, vTempArray);
 
-    SetLength(TempArray, VarianceArray.Count);
-    for i := 0 to VarianceArray.Count - 1 do
+    SetLength(vTempArray, vVarianceArray.Count);
+    for i := 0 to vVarianceArray.Count - 1 do
     begin
-      TempArray[i] := VarianceArray.Items[i].AsType<Double>;
+      vTempArray[i] := vVarianceArray.Items[i].AsType<Double>;
     end;
-    FVariances.AddOrSetValue(ClassLabel, TempArray);
+    FVariances.AddOrSetValue(vClassLabel, vTempArray);
   end;
 
   Trained := True;
 end;
-
-
-
-
 
 end.
 

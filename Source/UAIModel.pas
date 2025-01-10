@@ -3,7 +3,10 @@ unit UAIModel;
 interface
 
 uses
-  System.Generics.Collections, System.SysUtils, System.Math, UAITypes,
+  System.Generics.Collections,
+  System.SysUtils,
+  System.Math,
+  UAITypes,
   System.JSON;
 
 type
@@ -44,26 +47,27 @@ type
 implementation
 
 uses
-  UAuxGlobal, UError;
+  UAuxGlobal,
+  UError;
 
 function TAIModel.NormRangeToJSON: TJSONObject;
 var
-  MinValuesArray, MaxValuesArray: TJSONArray;
-  Value: Double;
+  vMinValuesArray, vMaxValuesArray: TJSONArray;
+  vValue: Double;
 begin
   Result := TJSONObject.Create;
   try
-    MinValuesArray := TJSONArray.Create;
-    for Value in FNormalizationRange.MinValues do begin
-      MinValuesArray.Add(Value);
+    vMinValuesArray := TJSONArray.Create;
+    for vValue in FNormalizationRange.MinValues do begin
+      vMinValuesArray.Add(vValue);
     end;
-    Result.AddPair('MinValues', MinValuesArray);
+    Result.AddPair('MinValues', vMinValuesArray);
 
-    MaxValuesArray := TJSONArray.Create;
-    for Value in FNormalizationRange.MaxValues do begin
-      MaxValuesArray.Add(Value);
+    vMaxValuesArray := TJSONArray.Create;
+    for vValue in FNormalizationRange.MaxValues do begin
+      vMaxValuesArray.Add(vValue);
     end;
-    Result.AddPair('MaxValues', MaxValuesArray);
+    Result.AddPair('MaxValues', vMaxValuesArray);
   except
     Result.Free;
     raise;
@@ -72,33 +76,33 @@ end;
 
 procedure TAIModel.JSONToNormRange(aJson : TJSONObject);
 var
-  MinValuesArray, MaxValuesArray: TJSONArray;
+  vMinValuesArray, vMaxValuesArray: TJSONArray;
   i: Integer;
 begin
   if not Assigned(aJson) then
     raise Exception.Create('Invalid JSON object.');
 
-  MinValuesArray := aJson.GetValue('MinValues') as TJSONArray;
-  if Assigned(MinValuesArray) then
+  vMinValuesArray := aJson.GetValue('MinValues') as TJSONArray;
+  if Assigned(vMinValuesArray) then
   begin
-    SetLength(FNormalizationRange.MinValues, MinValuesArray.Count);
-    for i := 0 to MinValuesArray.Count - 1 do
-      FNormalizationRange.MinValues[i] := MinValuesArray.Items[i].AsType<Double>;
+    SetLength(FNormalizationRange.MinValues, vMinValuesArray.Count);
+    for i := 0 to vMinValuesArray.Count - 1 do
+      FNormalizationRange.MinValues[i] := vMinValuesArray.Items[i].AsType<Double>;
   end
   else
     raise Exception.Create('Missing or invalid "MinValues".');
 
-  MaxValuesArray := aJson.GetValue('MaxValues') as TJSONArray;
-  if Assigned(MaxValuesArray) then
+  vMaxValuesArray := aJson.GetValue('MaxValues') as TJSONArray;
+  if Assigned(vMaxValuesArray) then
   begin
-    SetLength(FNormalizationRange.MaxValues, MaxValuesArray.Count);
-    for i := 0 to MaxValuesArray.Count - 1 do
-      FNormalizationRange.MaxValues[i] := MaxValuesArray.Items[i].AsType<Double>;
+    SetLength(FNormalizationRange.MaxValues, vMaxValuesArray.Count);
+    for i := 0 to vMaxValuesArray.Count - 1 do
+      FNormalizationRange.MaxValues[i] := vMaxValuesArray.Items[i].AsType<Double>;
   end
   else
     raise Exception.Create('Missing or invalid "MaxValues".');
 
-  InputLength := MaxValuesArray.Count;
+  InputLength := vMaxValuesArray.Count;
 end;
 
 procedure TAIModel.ValidateAndNormalizeInput(aInput: TAISampleAtr);
