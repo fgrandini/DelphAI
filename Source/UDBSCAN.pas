@@ -12,56 +12,47 @@ type
   function DBSCAN(aData : String; aEps: Double; aMinPts: Integer; aHasHeader : Boolean = True): TArray<Integer>; overload;
   function DBSCAN(aData : TDataSet; aEps: Double; aMinPts: Integer): TArray<Integer>; overload;
   function DBSCAN(aData : TAIDatasetClustering; aEps: Double; aMinPts: Integer): TArray<Integer>; overload;
+  function RegionQuery(const aData: TAIDatasetClustering; const aPointIdx: Integer; aEps: Double): TList<Integer>;
+  procedure ExpandCluster(const aData: TAIDatasetClustering; const aPointIdx: Integer; const aNeighbors: TList<Integer>; aClusterIdx: Integer; var aLabels: TArray<Integer>; aEps: Double; aMinPts: Integer);
 
 implementation
 
 uses
   UAuxGlobal, UAITypes;
 
-function Distance(const A, B: TAISampleAtr): Double;
-var
-  i: Integer;
-  Sum: Double;
-begin
-  Sum := 0.0;
-  for i := Low(A) to High(A) do
-    Sum := Sum + Sqr(A[i] - B[i]);
-  Result := Sqrt(Sum);
-end;
-
-function RegionQuery(const aData: TAIDatasetClustering; const PointIdx: Integer; aEps: Double): TList<Integer>;
+function RegionQuery(const aData: TAIDatasetClustering; const aPointIdx: Integer; aEps: Double): TList<Integer>;
 var
   i: Integer;
 begin
   Result := TList<Integer>.Create;
   for i := 0 to High(aData) do
   begin
-    if Distance(aData[PointIdx], aData[i]) <= aEps then
+    if Distance(aData[aPointIdx], aData[i]) <= aEps then
       Result.Add(i);
   end;
 end;
 
-procedure ExpandCluster(const aData: TAIDatasetClustering; const PointIdx: Integer; const Neighbors: TList<Integer>; ClusterIdx: Integer; var Labels: TArray<Integer>; aEps: Double; aMinPts: Integer);
+procedure ExpandCluster(const aData: TAIDatasetClustering; const aPointIdx: Integer; const aNeighbors: TList<Integer>; aClusterIdx: Integer; var aLabels: TArray<Integer>; aEps: Double; aMinPts: Integer);
 var
-  i, NeighborIdx: Integer;
-  NewNeighbors: TList<Integer>;
+  i, vNeighborIdx: Integer;
+  vNewNeighbors: TList<Integer>;
 begin
-  Labels[PointIdx] := ClusterIdx;
+  aLabels[aPointIdx] := aClusterIdx;
 
   i := 0;
-  while i < Neighbors.Count do
+  while i < aNeighbors.Count do
   begin
-    NeighborIdx := Neighbors[i];
+    vNeighborIdx := aNeighbors[i];
 
-    if Labels[NeighborIdx] = -1 then
+    if aLabels[vNeighborIdx] = -1 then
     begin
-      Labels[NeighborIdx] := ClusterIdx;
-      NewNeighbors := RegionQuery(aData, NeighborIdx, aEps);
+      aLabels[vNeighborIdx] := aClusterIdx;
+      vNewNeighbors := RegionQuery(aData, vNeighborIdx, aEps);
       try
-        if NewNeighbors.Count >= aMinPts then
-          Neighbors.AddRange(NewNeighbors);
+        if vNewNeighbors.Count >= aMinPts then
+          aNeighbors.AddRange(vNewNeighbors);
       finally
-        NewNeighbors.Free;
+        vNewNeighbors.Free;
       end;
     end;
 
@@ -91,39 +82,38 @@ begin
   Result := DBSCAN(vDataSet, aEps, aMinPts);
 end;
 
-
 function DBSCAN(aData: TAIDatasetClustering; aEps: Double; aMinPts: Integer): TArray<Integer>;
 var
   i: Integer;
-  Neighbors: TList<Integer>;
-  ClusterIdx: Integer;
-  Labels: TArray<Integer>;
+  vNeighbors: TList<Integer>;
+  vClusterIdx: Integer;
+  vLabels: TArray<Integer>;
 begin
-  SetLength(Labels, Length(aData));
-  FillChar(Labels[0], Length(Labels) * SizeOf(Integer), -1); 
+  SetLength(vLabels, Length(aData));
+  FillChar(vLabels[0], Length(vLabels) * SizeOf(Integer), -1);
 
-  ClusterIdx := 0;
+  vClusterIdx := 0;
 
   for i := 0 to High(aData) do
   begin
-    if Labels[i] <> -1 then
+    if vLabels[i] <> -1 then
       Continue;
 
-    Neighbors := RegionQuery(aData, i, aEps);
+    vNeighbors := RegionQuery(aData, i, aEps);
     try
-      if Neighbors.Count < aMinPts then
-        Labels[i] := 0  
+      if vNeighbors.Count < aMinPts then
+        vLabels[i] := 0
       else
       begin
-        Inc(ClusterIdx);
-        ExpandCluster(aData, i, Neighbors, ClusterIdx, Labels, aEps, aMinPts);
+        Inc(vClusterIdx);
+        ExpandCluster(aData, i, vNeighbors, vClusterIdx, vLabels, aEps, aMinPts);
       end;
     finally
-      Neighbors.Free;
+      vNeighbors.Free;
     end;
   end;
 
-  Result := Labels;
+  Result := vLabels;
 end;
 
 end.

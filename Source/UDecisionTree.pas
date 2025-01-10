@@ -22,10 +22,10 @@ type
     FRoot: TDecisionTreeNode;
     FCriterion: TSplitCriterion;
     FDepth : Integer;
-    function CalculateEntropy(const Labels: TAILabelsClassification): Double;
-    function CalculateGini(const Labels: TAILabelsClassification): Double;
-    function InformationGain(const Labels: TAILabelsClassification; const FeatureValues: TArray<Double>; Threshold: Double): Double;
-    function BuildTree(const Data: TAISamplesAtr; const Labels: TAILabelsClassification; Depth: Integer): TDecisionTreeNode;
+    function CalculateEntropy(const aLabels: TAILabelsClassification): Double;
+    function CalculateGini(const aLabels: TAILabelsClassification): Double;
+    function InformationGain(const aLabels: TAILabelsClassification; const aFeatureValues: TArray<Double>; aThreshold: Double): Double;
+    function BuildTree(const aData: TAISamplesAtr; const aLabels: TAILabelsClassification; aDepth: Integer): TDecisionTreeNode;
     function PredictNode(aNode: TDecisionTreeNode; const aSample: TArray<Double>): String;
   public
     constructor Create(aDepth: Integer; aSplitCriterion: TSplitCriterion); overload;
@@ -37,12 +37,13 @@ type
     procedure LoadFromJson(aJson : TJSONObject);
 
     function Predict(aSample: TArray<Double>; aInputNormalized : Boolean = False): String;
-    procedure LoadFromFile(const FileName: string);
-    procedure SaveToFile(const FileName: string);
+    procedure LoadFromFile(const aFileName: string);
+    procedure SaveToFile(const aFileName: string);
     function TreeToJSON: TJSONObject;
     property Root : TDecisionTreeNode read FRoot write FRoot;
   end;
-  function JSONToNode(JSONNode: TJSONObject): TDecisionTreeNode;
+  function JSONToNode(aJSONNode: TJSONObject): TDecisionTreeNode;
+  function NodeToJSON(aNode: TDecisionTreeNode): TJSONObject;
 
 implementation
 
@@ -69,35 +70,35 @@ begin
   inherited;
 end;
 
-function TDecisionTree.CalculateEntropy(const Labels: TAILabelsClassification): Double;
+function TDecisionTree.CalculateEntropy(const aLabels: TAILabelsClassification): Double;
 var
   vLabelCounts: array of Integer;
   vUniqueLabels: TDictionary<String, Integer>;
-  Total, i, Count: Integer;
+  vTotal, i, vCount: Integer;
   vProbability: Double;
   vEntropy: Double;
-  LabelValue: String;
-  LabelIndex: Integer;
+  vLabelValue: String;
+  vLabelIndex: Integer;
 begin
-  Total := Length(Labels);
+  vTotal := Length(aLabels);
   vUniqueLabels := TDictionary<String, Integer>.Create;
   try
-    for LabelValue in Labels do begin
-      if not vUniqueLabels.ContainsKey(LabelValue) then begin
-        vUniqueLabels.Add(LabelValue, vUniqueLabels.Count);
+    for vLabelValue in aLabels do begin
+      if not vUniqueLabels.ContainsKey(vLabelValue) then begin
+        vUniqueLabels.Add(vLabelValue, vUniqueLabels.Count);
       end;
     end;
 
     SetLength(vLabelCounts, vUniqueLabels.Count);
-    for i := 0 to Total - 1 do begin
-      LabelIndex := vUniqueLabels[Labels[i]];
-      Inc(vLabelCounts[LabelIndex]);
+    for i := 0 to vTotal - 1 do begin
+      vLabelIndex := vUniqueLabels[aLabels[i]];
+      Inc(vLabelCounts[vLabelIndex]);
     end;
 
     vEntropy := 0.0;
-    for Count in vLabelCounts do begin
-      vProbability := Count / Total;
-      vEntropy := vEntropy - (vProbability * Log2(vProbability + 1e-10));  
+    for vCount in vLabelCounts do begin
+      vProbability := vCount / vTotal;
+      vEntropy := vEntropy - (vProbability * Log2(vProbability + 1e-10));
     end;
 
     Result := vEntropy;
@@ -107,7 +108,7 @@ begin
 end;
 
 
-function TDecisionTree.CalculateGini(const Labels: TAILabelsClassification): Double;
+function TDecisionTree.CalculateGini(const aLabels: TAILabelsClassification): Double;
 var
   vLabelCounts: TDictionary<String, Integer>;
   vTotal, vCount : Integer;
@@ -117,14 +118,14 @@ var
 begin
   vLabelCounts := TDictionary<String, Integer>.Create;
   try
-    for vLabelValue in Labels do begin
+    for vLabelValue in aLabels do begin
       if not vLabelCounts.ContainsKey(vLabelValue) then begin
         vLabelCounts.Add(vLabelValue, 0);
       end;
       vLabelCounts[vLabelValue] := vLabelCounts[vLabelValue] + 1;
     end;
 
-    vTotal := Length(Labels);
+    vTotal := Length(aLabels);
     vGini := 1.0;
 
     for vCount in vLabelCounts.Values do begin
@@ -138,39 +139,39 @@ begin
   end;
 end;
 
-function TDecisionTree.InformationGain(const Labels: TAILabelsClassification; const FeatureValues: TArray<Double>; Threshold: Double): Double;
+function TDecisionTree.InformationGain(const aLabels: TAILabelsClassification; const aFeatureValues: TArray<Double>; aThreshold: Double): Double;
 var
   vLeftLabels, vRightLabels: TArray<String>;
-  i, LeftCount, RightCount: Integer;
+  i, vLeftCount, vRightCount: Integer;
   vMetricBefore, vMetricLeft, vMetricRight: Double;
-  UseEntropy: Boolean;
+  vUseEntropy: Boolean;
 begin
-  SetLength(vLeftLabels, Length(Labels));
-  SetLength(vRightLabels, Length(Labels));
-  LeftCount := 0;
-  RightCount := 0;
+  SetLength(vLeftLabels, Length(aLabels));
+  SetLength(vRightLabels, Length(aLabels));
+  vLeftCount := 0;
+  vRightCount := 0;
 
-  UseEntropy := FCriterion = scEntropy;
+  vUseEntropy := FCriterion = scEntropy;
 
-  for i := 0 to Length(FeatureValues) - 1 do begin
-    if FeatureValues[i] <= Threshold then begin
-      vLeftLabels[LeftCount] := Labels[i];
-      Inc(LeftCount);
+  for i := 0 to Length(aFeatureValues) - 1 do begin
+    if aFeatureValues[i] <= aThreshold then begin
+      vLeftLabels[vLeftCount] := aLabels[i];
+      Inc(vLeftCount);
     end else begin
-      vRightLabels[RightCount] := Labels[i];
-      Inc(RightCount);
+      vRightLabels[vRightCount] := aLabels[i];
+      Inc(vRightCount);
     end;
   end;
 
-  SetLength(vLeftLabels, LeftCount);
-  SetLength(vRightLabels, RightCount);
+  SetLength(vLeftLabels, vLeftCount);
+  SetLength(vRightLabels, vRightCount);
 
-  if UseEntropy then
-    vMetricBefore := CalculateEntropy(Labels)
+  if vUseEntropy then
+    vMetricBefore := CalculateEntropy(aLabels)
   else
-    vMetricBefore := CalculateGini(Labels);
+    vMetricBefore := CalculateGini(aLabels);
 
-  if UseEntropy then begin
+  if vUseEntropy then begin
     vMetricLeft := CalculateEntropy(vLeftLabels);
     vMetricRight := CalculateEntropy(vRightLabels);
   end else begin
@@ -178,11 +179,11 @@ begin
     vMetricRight := CalculateGini(vRightLabels);
   end;
 
-  Result := vMetricBefore - ((LeftCount / Length(Labels)) * vMetricLeft) -
-            ((RightCount / Length(Labels)) * vMetricRight);
+  Result := vMetricBefore - ((vLeftCount / Length(aLabels)) * vMetricLeft) -
+            ((vRightCount / Length(aLabels)) * vMetricRight);
 end;
 
-function TDecisionTree.BuildTree(const Data: TAISamplesAtr; const Labels: TAILabelsClassification; Depth: Integer): TDecisionTreeNode;
+function TDecisionTree.BuildTree(const aData: TAISamplesAtr; const aLabels: TAILabelsClassification; aDepth: Integer): TDecisionTreeNode;
 var
   vBestFeatureIndex : Integer;
   vBestThreshold, vBestGain, vGain : Double;
@@ -193,9 +194,9 @@ var
   vLeftData, vRightData: TList<TArray<Double>>;
   vLeftLabels, vRightLabels: TList<String>;
 begin
-  if (Length(Data) = 0) or (Depth = 0) then begin
+  if (Length(aData) = 0) or (aDepth = 0) then begin
     vNode := TDecisionTreeNode.Create;
-    vNode.LabelValue := Labels[0]; 
+    vNode.LabelValue := aLabels[0];
     Exit(vNode);
   end;
 
@@ -203,15 +204,15 @@ begin
   vBestFeatureIndex := -1;
   vBestThreshold := 0;
 
-  for i := 0 to Length(Data[0]) - 1 do begin
-    SetLength(vFeatureValues, Length(Data));
-    for j := 0 to Length(Data) - 1 do begin
-      vFeatureValues[j] := Data[j][i];
+  for i := 0 to Length(aData[0]) - 1 do begin
+    SetLength(vFeatureValues, Length(aData));
+    for j := 0 to Length(aData) - 1 do begin
+      vFeatureValues[j] := aData[j][i];
     end;
 
     for j := 0 to Length(vFeatureValues) - 1 do begin
       vThreshold := vFeatureValues[j];
-      vGain := InformationGain(Labels, vFeatureValues, vThreshold);
+      vGain := InformationGain(aLabels, vFeatureValues, vThreshold);
 
       if vGain > vBestGain then
       begin
@@ -224,7 +225,7 @@ begin
 
   if vBestGain = 0 then begin
     vNode := TDecisionTreeNode.Create;
-    vNode.LabelValue := Labels[0];
+    vNode.LabelValue := aLabels[0];
     Exit(vNode);
   end;
 
@@ -237,18 +238,18 @@ begin
   vLeftLabels := TList<String>.Create;
   vRightLabels := TList<String>.Create;
   try
-    for j := 0 to Length(Data) - 1 do begin
-      if Data[j][vBestFeatureIndex] <= vBestThreshold then begin
-        vLeftData.Add(Data[j]);
-        vLeftLabels.Add(Labels[j]);
+    for j := 0 to Length(aData) - 1 do begin
+      if aData[j][vBestFeatureIndex] <= vBestThreshold then begin
+        vLeftData.Add(aData[j]);
+        vLeftLabels.Add(aLabels[j]);
       end else begin
-        vRightData.Add(Data[j]);
-        vRightLabels.Add(Labels[j]);
+        vRightData.Add(aData[j]);
+        vRightLabels.Add(aLabels[j]);
       end;
     end;
 
-    vNode.LeftChild := BuildTree(vLeftData.ToArray, vLeftLabels.ToArray, Depth - 1);
-    vNode.RightChild := BuildTree(vRightData.ToArray, vRightLabels.ToArray, Depth - 1);
+    vNode.LeftChild := BuildTree(vLeftData.ToArray, vLeftLabels.ToArray, aDepth - 1);
+    vNode.RightChild := BuildTree(vRightData.ToArray, vRightLabels.ToArray, aDepth - 1);
   finally
     vLeftData.Free;
     vRightData.Free;
@@ -281,43 +282,43 @@ begin
   end;
 end;
 
-function NodeToJSON(Node: TDecisionTreeNode): TJSONObject;
+function NodeToJSON(aNode: TDecisionTreeNode): TJSONObject;
 var
-  JSONNode: TJSONObject;
+  vJSONNode: TJSONObject;
 begin
-  JSONNode := TJSONObject.Create;
+  vJSONNode := TJSONObject.Create;
 
-  JSONNode.AddPair('FeatureIndex', TJSONNumber.Create(Node.FeatureIndex));
-  JSONNode.AddPair('Threshold', TJSONNumber.Create(Node.Threshold));
-  if Node.LabelValue <> '' then
-    JSONNode.AddPair('LabelValue', Node.LabelValue);
+  vJSONNode.AddPair('FeatureIndex', TJSONNumber.Create(aNode.FeatureIndex));
+  vJSONNode.AddPair('Threshold', TJSONNumber.Create(aNode.Threshold));
+  if aNode.LabelValue <> '' then
+    vJSONNode.AddPair('LabelValue', aNode.LabelValue);
 
-  if Assigned(Node.LeftChild) then
-    JSONNode.AddPair('LeftChild', NodeToJSON(Node.LeftChild));
+  if Assigned(aNode.LeftChild) then
+    vJSONNode.AddPair('LeftChild', NodeToJSON(aNode.LeftChild));
 
-  if Assigned(Node.RightChild) then
-    JSONNode.AddPair('RightChild', NodeToJSON(Node.RightChild));
+  if Assigned(aNode.RightChild) then
+    vJSONNode.AddPair('RightChild', NodeToJSON(aNode.RightChild));
 
-  Result := JSONNode;
+  Result := vJSONNode;
 end;
 
 procedure TDecisionTree.Train(aTrainingData: TAIDatasetClassification; aNormalizationRange: TNormalizationRange);
 var
-  Labels: TAILabelsClassification;
-  Data: TAISamplesAtr;
+  vLabels: TAILabelsClassification;
+  vData: TAISamplesAtr;
 begin
   FNormalizationRange := aNormalizationRange;
   FDataset := Copy(aTrainingData);
-  SplitLabelAndSampleDataset(FDataset, Data, Labels);
+  SplitLabelAndSampleDataset(FDataset, vData, vLabels);
   PopulateInputLenght;
-  FRoot := BuildTree(Data, Labels, FDepth);
+  FRoot := BuildTree(vData, vLabels, FDepth);
   Trained := True;
 end;
 
 procedure TDecisionTree.Train(aTrainingData: String; aHasHeader: Boolean);
 var
-  Labels: TAILabelsClassification;
-  Data: TAISamplesAtr;
+  vLabels: TAILabelsClassification;
+  vData: TAISamplesAtr;
 begin
   LoadDataset(aTrainingData, FDataset, FNormalizationRange, aHasHeader);
 
@@ -325,16 +326,16 @@ begin
     raise Exception.Create('Dataset is empty.');
   end;
 
-  SplitLabelAndSampleDataset(FDataset, Data, Labels);
+  SplitLabelAndSampleDataset(FDataset, vData, vLabels);
   PopulateInputLenght;
-  FRoot := BuildTree(Data, Labels, FDepth);
+  FRoot := BuildTree(vData, vLabels, FDepth);
   Trained := True;
 end;
 
 procedure TDecisionTree.Train(aTrainingData: TDataSet);
 var
-  Labels: TAILabelsClassification;
-  Data: TAISamplesAtr;
+  vLabels: TAILabelsClassification;
+  vData: TAISamplesAtr;
 begin
   if aTrainingData.RecordCount = 0 then begin
     raise Exception.Create('Dataset is empty.');
@@ -342,9 +343,9 @@ begin
 
   LoadDataset(aTrainingData, FDataset, FNormalizationRange);
 
-  SplitLabelAndSampleDataset(FDataset, Data, Labels);
+  SplitLabelAndSampleDataset(FDataset, vData, vLabels);
   PopulateInputLenght;
-  FRoot := BuildTree(Data, Labels, FDepth);
+  FRoot := BuildTree(vData, vLabels, FDepth);
   Trained := True;
 end;
 
@@ -359,66 +360,66 @@ begin
   Result := vJson;
 end;
 
-procedure TDecisionTree.SaveToFile(const FileName: string);
+procedure TDecisionTree.SaveToFile(const aFileName: string);
 var
-  JSONTree: TJSONObject;
-  JSONString: string;
-  FileStream: TFileStream;
-  Bytes: TBytes;
+  vJSONTree: TJSONObject;
+  vJSONString: string;
+  vFileStream: TFileStream;
+  vBytes: TBytes;
 begin
-  JSONTree := TreeToJSON;
+  vJSONTree := TreeToJSON;
   try
-    JSONString := JSONTree.ToString;
-    Bytes := TEncoding.UTF8.GetBytes(JSONString);
+    vJSONString := vJSONTree.ToString;
+    vBytes := TEncoding.UTF8.GetBytes(vJSONString);
 
-    FileStream := TFileStream.Create(FileName, fmCreate);
+    vFileStream := TFileStream.Create(aFileName, fmCreate);
     try
-      FileStream.Write(Bytes[0], Length(Bytes));
+      vFileStream.Write(vBytes[0], Length(vBytes));
     finally
-      FileStream.Free;
+      vFileStream.Free;
     end;
   finally
-    JSONTree.Free;
+    vJSONTree.Free;
   end;
 end;
 
-function JSONToNode(JSONNode: TJSONObject): TDecisionTreeNode;
+function JSONToNode(aJSONNode: TJSONObject): TDecisionTreeNode;
 var
-  Node: TDecisionTreeNode;
-  LeftChildJSON, RightChildJSON: TJSONObject;
+  vNode: TDecisionTreeNode;
+  vLeftChildJSON, vRightChildJSON: TJSONObject;
 begin
-  Node := TDecisionTreeNode.Create;
+  vNode := TDecisionTreeNode.Create;
 
-  Node.FeatureIndex := JSONNode.GetValue<Integer>('FeatureIndex');
-  Node.Threshold := JSONNode.GetValue<Double>('Threshold');
-  if JSONNode.TryGetValue('LabelValue', Node.LabelValue) then
-    Node.LabelValue := JSONNode.GetValue<string>('LabelValue');
+  vNode.FeatureIndex := aJSONNode.GetValue<Integer>('FeatureIndex');
+  vNode.Threshold := aJSONNode.GetValue<Double>('Threshold');
+  if aJSONNode.TryGetValue('LabelValue', vNode.LabelValue) then
+    vNode.LabelValue := aJSONNode.GetValue<string>('LabelValue');
 
-  if JSONNode.TryGetValue('LeftChild', LeftChildJSON) then
-    Node.LeftChild := JSONToNode(LeftChildJSON);
+  if aJSONNode.TryGetValue('LeftChild', vLeftChildJSON) then
+    vNode.LeftChild := JSONToNode(vLeftChildJSON);
 
-  if JSONNode.TryGetValue('RightChild', RightChildJSON) then
-    Node.RightChild := JSONToNode(RightChildJSON);
+  if aJSONNode.TryGetValue('RightChild', vRightChildJSON) then
+    vNode.RightChild := JSONToNode(vRightChildJSON);
 
-  Result := Node;
+  Result := vNode;
 end;
 
-procedure TDecisionTree.LoadFromFile(const FileName: string);
+procedure TDecisionTree.LoadFromFile(const aFileName: string);
 var
   vJson: TJSONObject;
-  JSONString: string;
-  FileStream: TFileStream;
-  Bytes: TBytes;
-  Size: Integer;
+  vJSONString: string;
+  vFileStream: TFileStream;
+  vBytes: TBytes;
+  vSize: Integer;
 begin
-  FileStream := TFileStream.Create(FileName, fmOpenRead);
+  vFileStream := TFileStream.Create(aFileName, fmOpenRead);
   try
-    Size := FileStream.Size;
-    SetLength(Bytes, Size);
-    FileStream.Read(Bytes[0], Size);
-    JSONString := TEncoding.UTF8.GetString(Bytes);
+    vSize := vFileStream.Size;
+    SetLength(vBytes, vSize);
+    vFileStream.Read(vBytes[0], vSize);
+    vJSONString := TEncoding.UTF8.GetString(vBytes);
 
-    vJson := TJSONObject.ParseJSONValue(JSONString) as TJSONObject;
+    vJson := TJSONObject.ParseJSONValue(vJSONString) as TJSONObject;
     try
       FRoot := JSONToNode(vJson.FindValue('Root') as TJSONObject);
       InputLength := StrToInt(vJson.FindValue('InputLength').Value);
@@ -428,10 +429,9 @@ begin
       vJson.Free;
     end;
   finally
-    FileStream.Free;
+    vFileStream.Free;
   end;
 end;
-
 
 procedure TDecisionTree.LoadFromJson(aJson : TJSONObject);
 begin
@@ -440,7 +440,6 @@ begin
   Root := JSONToNode(aJson.FindValue('Root') as TJSONObject);
   Trained := True;
 end;
-
 
 
 { TDecisionTreeNode }

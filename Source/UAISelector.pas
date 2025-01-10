@@ -21,85 +21,85 @@ type
   end;
 
   TAIClassificationTest = class
-    private
-      FFinished : Boolean;
-      FResults  : TDictionary<String, TClassResult>;
-    public
-      constructor Create;
-      destructor Destroy; override;
-      procedure ProcessResult(aPredictedClass, aCorrectClass : String);
-      function Accuracy : Double;
-      property Results  : TDictionary<String, TClassResult> read FResults write FResults;
-      property Finished : Boolean read FFinished write FFinished;
+  private
+    FFinished : Boolean;
+    FResults  : TDictionary<String, TClassResult>;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure ProcessResult(aPredictedClass, aCorrectClass : String);
+    function Accuracy : Double;
+    property Results  : TDictionary<String, TClassResult> read FResults write FResults;
+    property Finished : Boolean read FFinished write FFinished;
   end;
 
   TAIClassificationModelKNN = class(TAIClassificationTest)
-    private
-      FK : Integer;
-      FModel : TKNNClassification;
-    public
-      constructor Create(aK : Integer);
-      destructor Destroy; override;
-      property K : Integer read FK;
+  private
+    FK : Integer;
+    FModel : TKNNClassification;
+  public
+    constructor Create(aK : Integer);
+    destructor Destroy; override;
+    property K : Integer read FK;
   end;
 
   TAIClassificationModelTree = class(TAIClassificationTest)
-    private
-      FDepth: Integer;
-      FSplitCriterion : TSplitCriterion;
-      FModel : TDecisionTree;
-    public
-      destructor Destroy; override;
-      constructor Create(aDepth: Integer; aSplitCriterion : TSplitCriterion);
-      function TreeToJSON : TJSONObject;
-      property Depth : Integer read FDepth;
-      property SplitCriterion : TSplitCriterion read FSplitCriterion;
+  private
+    FDepth: Integer;
+    FSplitCriterion : TSplitCriterion;
+    FModel : TDecisionTree;
+  public
+    destructor Destroy; override;
+    constructor Create(aDepth: Integer; aSplitCriterion : TSplitCriterion);
+    function TreeToJSON : TJSONObject;
+    property Depth : Integer read FDepth;
+    property SplitCriterion : TSplitCriterion read FSplitCriterion;
   end;
 
   TAIClassificationModelNaive = class(TAIClassificationTest)
-    private
-      FModel : TGaussianNaiveBayes;
-    public
-      destructor Destroy; override;
-      function ToJSONObject: TJSONObject;
+  private
+    FModel : TGaussianNaiveBayes;
+  public
+    destructor Destroy; override;
+    function ToJSONObject: TJSONObject;
   end;
 
   TAIClassificationModels = class
-    private
-      FLstModels : TList<TAIClassificationTest>;
-    public
-      procedure AddKNN(aK : Integer);
-      procedure AddTree(aDepth: Integer; aSplitCriterion: TSplitCriterion);
-      procedure AddNaiveBayes;
-      constructor Create;
-      destructor Destroy; override;
-      property LstModels : TList<TAIClassificationTest> read FLstModels;
+  private
+    FLstModels : TList<TAIClassificationTest>;
+  public
+    procedure AddKNN(aK : Integer);
+    procedure AddTree(aDepth: Integer; aSplitCriterion: TSplitCriterion);
+    procedure AddNaiveBayes;
+    constructor Create;
+    destructor Destroy; override;
+    property LstModels : TList<TAIClassificationTest> read FLstModels;
   end;
 
   TAIClassificationSelector = class
-    private
-      FModels : TAIClassificationModels;
-      FTrainDatas,
-      FTestDatas : TList<TAIDatasetClassification>;
-      FDataset : TAIDatasetClassification;
-      FNormalizationRange : TNormalizationRange;
-      procedure InitializeKNNTest(aModelKNN : TAIClassificationModelKNN);
-      procedure InitializeTreeTest(aModelTree : TAIClassificationModelTree);
-      procedure InitializeNaiveBayesTest(aModelNaive : TAIClassificationModelNaive);
+  private
+    FModels : TAIClassificationModels;
+    FTrainDatas,
+    FTestDatas : TList<TAIDatasetClassification>;
+    FDataset : TAIDatasetClassification;
+    FNormalizationRange : TNormalizationRange;
+    procedure InitializeKNNTest(aModelKNN : TAIClassificationModelKNN);
+    procedure InitializeTreeTest(aModelTree : TAIClassificationModelTree);
+    procedure InitializeNaiveBayesTest(aModelNaive : TAIClassificationModelNaive);
     procedure CreateFs;
-    public
-      procedure RunTests(aCsvResultFile, aLogFile : String;
-                         aMaxThreads : Integer = 0;
-                         aPercDatasetTest : Integer = 25;
-                         aRandomDataset : Boolean = True;
-                         aCrossValidation : Boolean = True);
-      constructor Create(aDataset : TAIDatasetClassification; aNormalizationRange : TNormalizationRange); overload;
-      constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
-      constructor Create(aDataset : TDataSet); overload;
-      destructor Destroy; override;
+  public
+    procedure RunTests(aCsvResultFile, aLogFile : String;
+                       aMaxThreads : Integer = 0;
+                       aPercDatasetTest : Integer = 25;
+                       aRandomDataset : Boolean = True;
+                       aCrossValidation : Boolean = True);
+    constructor Create(aDataset : TAIDatasetClassification; aNormalizationRange : TNormalizationRange); overload;
+    constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
+    constructor Create(aDataset : TDataSet); overload;
+    destructor Destroy; override;
 
-      property Models : TAIClassificationModels read FModels;
-      property Dataset : TAIDatasetClassification read FDataset;
+    property Models : TAIClassificationModels read FModels;
+    property Dataset : TAIDatasetClassification read FDataset;
   end;
 
 
@@ -107,96 +107,91 @@ type
   //------------------------  REGRESSION
 
   TAIRegressionTest = class
-    private
-      FFinished : Boolean;
-      FSumSquaredErrors: Double; 
-      FSumAbsoluteErrors: Double; 
-      FSumSquaredTotal: Double; 
-      FSumCorrectValues: Double; 
-      FSampleCount: Integer; 
-
-      FR2, FMAE, FMSE, FRMSE : Double;
-
-      FCorrectValues: TList<Double>; 
-
-    public
-      constructor Create;
-      destructor Destroy; override;
-      procedure ProcessResult(aPredictedValue, aCorrectValue : Double);
-      procedure GenerateMetrics;
-      property Finished : Boolean read FFinished write FFinished;
-      property R2 : Double read FR2 write FR2;
-      property MAE : Double read FMAE write FMAE;
-      property MSE : Double read FMSE write FMSE;
-      property RMSE : Double read FRMSE write FRMSE;
+  private
+    FFinished : Boolean;
+    FSumSquaredErrors: Double;
+    FSumAbsoluteErrors: Double;
+    FSumSquaredTotal: Double;
+    FSumCorrectValues: Double;
+    FSampleCount: Integer;
+    FR2, FMAE, FMSE, FRMSE : Double;
+    FCorrectValues: TList<Double>;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure ProcessResult(aPredictedValue, aCorrectValue : Double);
+    procedure GenerateMetrics;
+    property Finished : Boolean read FFinished write FFinished;
+    property R2 : Double read FR2 write FR2;
+    property MAE : Double read FMAE write FMAE;
+    property MSE : Double read FMSE write FMSE;
+    property RMSE : Double read FRMSE write FRMSE;
   end;
 
   TAIRegressionModelLinear = class(TAIRegressionTest)
-    private
-      FModel : TLinearRegression;
-    public
-      destructor Destroy; override;
-      function ToJSONObject: TJSONObject;
+  private
+    FModel : TLinearRegression;
+  public
+    destructor Destroy; override;
+    function ToJSONObject: TJSONObject;
   end;
 
   TAIRegressionModelRidge = class(TAIRegressionTest)
-    private
-      FAlfa : Double;
-
-      FModel : TRidgeRegression;
-    public
-      function ToJSONObject: TJSONObject;
-      constructor Create(aAlfa : Double = 1);
-      destructor Destroy; override;
-
+  private
+    FAlfa : Double;
+    FModel : TRidgeRegression;
+  public
+    function ToJSONObject: TJSONObject;
+    constructor Create(aAlfa : Double = 1);
+    destructor Destroy; override;
   end;
 
   TAIRegressionModelKNN = class(TAIRegressionTest)
-    private
-      FK : Integer;
-      FModel : TKNNRegression;
-    public
-      constructor Create(aK : Integer);
-      destructor Destroy; override;
-      property K : Integer read FK;
+  private
+    FK : Integer;
+    FModel : TKNNRegression;
+  public
+    constructor Create(aK : Integer);
+    destructor Destroy; override;
+    property K : Integer read FK;
   end;
 
   TAIRegressionModels = class
-    private
-      FLstModels : TList<TAIRegressionTest>;
-    public
-      procedure AddKNN(aK : Integer);
-      procedure AddLinearRegression;
-      procedure AddRidge(aAlfa : Double = 1);
-      constructor Create;
-      destructor Destroy; override;
-      property LstModels : TList<TAIRegressionTest> read FLstModels;
+  private
+    FLstModels : TList<TAIRegressionTest>;
+  public
+    procedure AddKNN(aK : Integer);
+    procedure AddLinearRegression;
+    procedure AddRidge(aAlfa : Double = 1);
+    constructor Create;
+    destructor Destroy; override;
+    property LstModels : TList<TAIRegressionTest> read FLstModels;
   end;
 
   TAIRegressionSelector = class
-    private
-      FModels : TAIRegressionModels;
-      FNormalizationRange : TNormalizationRange;
-      FTrainDatas,
-      FTestDatas : TList<TAIDatasetRegression>;
-      FDataset : TAIDatasetRegression;
-      procedure InitializeKNNTest(aModelKNN : TAIRegressionModelKNN);
-      procedure InitializeLinearRegressionTest(aModelLinear : TAIRegressionModelLinear);
-      procedure InitializeLinearRidgeTest(aModelRidge : TAIRegressionModelRidge);
+  private
+    FModels : TAIRegressionModels;
+    FNormalizationRange : TNormalizationRange;
+    FTrainDatas,
+    FTestDatas : TList<TAIDatasetRegression>;
+    FDataset : TAIDatasetRegression;
+    procedure InitializeKNNTest(aModelKNN : TAIRegressionModelKNN);
+    procedure InitializeLinearRegressionTest(aModelLinear : TAIRegressionModelLinear);
+    procedure InitializeLinearRidgeTest(aModelRidge : TAIRegressionModelRidge);
     procedure CreateFs;
-    public
-      procedure RunTests(aCsvResultFile, aLogFile : String;
-                                            aMaxThreads : Integer = 0;
-                                            aPercDatasetTest : Integer = 25;
-                                            aRandomDataset : Boolean = True;
-                                            aCrossValidation : Boolean = True);
-      constructor Create(aDataset : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
-      constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
-      constructor Create(aDataset : TDataSet); overload;
-      destructor Destroy; override;
+  public
+    procedure RunTests(aCsvResultFile, aLogFile : String;
+                                          aMaxThreads : Integer = 0;
+                                          aPercDatasetTest : Integer = 25;
+                                          aRandomDataset : Boolean = True;
+                                          aCrossValidation : Boolean = True);
+    constructor Create(aDataset : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
+    constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
+    constructor Create(aDataset : TDataSet); overload;
+    destructor Destroy; override;
 
-      property Models : TAIRegressionModels read FModels;
-      property Dataset : TAIDatasetRegression read FDataset;
+    property Models : TAIRegressionModels read FModels;
+    property Dataset : TAIDatasetRegression read FDataset;
   end;
 
   //------------------------  RECOMMENDATION
@@ -219,38 +214,38 @@ type
   end;
 
   TAIRecommendationModels = class
-    private
-      FLstModels : TList<TAIRecommendationModel>;
-    public
-      procedure AddItemItem(aItemsToRecommendCount : Integer; aDistanceMethod : TDistanceMode = dmManhattan);
-      procedure AddUserUser(aItemsToRecommendCount, aK : Integer; aAggregMethod : TUserScoreAggregationMethod = amWeightedAverage; aDistanceMethod : TDistanceMode = dmManhattan);
-      constructor Create;
-      destructor Destroy; override;
-      property LstModels : TList<TAIRecommendationModel> read FLstModels;
+  private
+    FLstModels : TList<TAIRecommendationModel>;
+  public
+    procedure AddItemItem(aItemsToRecommendCount : Integer; aDistanceMethod : TDistanceMode = dmManhattan);
+    procedure AddUserUser(aItemsToRecommendCount, aK : Integer; aAggregMethod : TUserScoreAggregationMethod = amWeightedAverage; aDistanceMethod : TDistanceMode = dmManhattan);
+    constructor Create;
+    destructor Destroy; override;
+    property LstModels : TList<TAIRecommendationModel> read FLstModels;
   end;
 
   TAIRecommendationSelector = class
-    private
-      FModels : TAIRecommendationModels;
-      FDataset : TAIDatasetRecommendation;
-      FNormalizationRange : TNormalizationRange;
-    public
-      procedure RunTestsUserUser(aCsvResultFile, aLogFile : String;
-                       aMaxThreads : Integer = 0);
-      procedure RunTestsItemItem(aCsvResultFile, aLogFile : String;
-                       aMaxThreads : Integer = 0);
-      constructor Create(aDataset : TAIDatasetRecommendation; aNormalizationRange : TNormalizationRange); overload;
-      constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
-      constructor Create(aDataset : TDataSet); overload;
-      destructor Destroy; override;
+  private
+    FModels : TAIRecommendationModels;
+    FDataset : TAIDatasetRecommendation;
+    FNormalizationRange : TNormalizationRange;
+  public
+    procedure RunTestsUserUser(aCsvResultFile, aLogFile : String;
+                     aMaxThreads : Integer = 0);
+    procedure RunTestsItemItem(aCsvResultFile, aLogFile : String;
+                     aMaxThreads : Integer = 0);
+    constructor Create(aDataset : TAIDatasetRecommendation; aNormalizationRange : TNormalizationRange); overload;
+    constructor Create(aDataset : String; aHasHeader : Boolean = True); overload;
+    constructor Create(aDataset : TDataSet); overload;
+    destructor Destroy; override;
 
-      property Models : TAIRecommendationModels read FModels;
-      property Dataset : TAIDatasetRecommendation read FDataset;
+    property Models : TAIRecommendationModels read FModels;
+    property Dataset : TAIDatasetRecommendation read FDataset;
   end;
 
-  procedure SplitDataset(Dataset: TAIDatasetClassification; TestPercent: Double; aGetRandomSamples: Boolean;
+  procedure SplitDataset(aDataset: TAIDatasetClassification; aTestPercent: Double; aGetRandomSamples: Boolean;
     aTrainDatas, aTestDatas: TList<TAIDatasetClassification>; aBaseCount: Integer); overload;
-  procedure SplitDataset(Dataset: TAIDatasetRegression; TestPercent: Double; aGetRandomSamples: Boolean;
+  procedure SplitDataset(aDataset: TAIDatasetRegression; aTestPercent: Double; aGetRandomSamples: Boolean;
     aTrainDatas, aTestDatas: TList<TAIDatasetRegression>; aBaseCount: Integer); overload;
 
 
@@ -258,9 +253,6 @@ implementation
 
 uses
   System.SysUtils, System.Math, System.Threading, UAuxGlobal, ULogger, System.Classes;
-
-const
-  RISCO_SEPARACAO = '-------------------';
 
 { TAIClassificationModels }
 
@@ -331,7 +323,6 @@ begin
   LoadDataset(aDataset, FDataset, FNormalizationRange);
   CreateFs;
 end;
-
 
 destructor TAIClassificationSelector.Destroy;
 begin
@@ -425,17 +416,17 @@ begin
 end;
 
 procedure TAIClassificationSelector.RunTests(aCsvResultFile, aLogFile : String;
-                                            aMaxThreads : Integer = 0;
-                                            aPercDatasetTest : Integer = 25;
-                                            aRandomDataset : Boolean = True;
-                                            aCrossValidation : Boolean = True);
+                                             aMaxThreads : Integer = 0;
+                                             aPercDatasetTest : Integer = 25;
+                                             aRandomDataset : Boolean = True;
+                                             aCrossValidation : Boolean = True);
 var
-  vLinha,
+  vLine,
   vClassName : String;
-  i, vProxFiltro,
+  i, vNextFilter,
   vBaseCount : Integer;
   vLogger : TLogger;
-  vArquivoCSV : TStringList;
+  vCSVFile : TStringList;
   vResult : TClassResult;
 begin
   if aPercDatasetTest > 90 then begin
@@ -453,7 +444,7 @@ begin
     aMaxThreads := Min(aMaxThreads, PCThreadCount);
   end;
   vLogger := TLogger.Create(aLogFile);
-  vArquivoCSV := TStringList.Create;
+  vCSVFile := TStringList.Create;
   try
     vLogger.Log('Spliting Dataset.');
     if aCrossValidation then begin
@@ -465,83 +456,78 @@ begin
     vLogger.Log('Dataset splited.');
     vLogger.Log('Samples to train: ' + IntToStr(High(FTrainDatas[0])));
     vLogger.Log('Samples to test: ' + IntToStr(High(FTestDatas[0])));
-    vProxFiltro := 0;
-    while vProxFiltro < FModels.FLstModels.Count do begin
-      if vProxFiltro + aMaxThreads > FModels.FLstModels.Count then begin
-        aMaxThreads := FModels.FLstModels.Count - vProxFiltro;
+    vNextFilter := 0;
+    while vNextFilter < FModels.FLstModels.Count do begin
+      if vNextFilter + aMaxThreads > FModels.FLstModels.Count then begin
+        aMaxThreads := FModels.FLstModels.Count - vNextFilter;
       end;
-      TParallel.For(vProxFiltro, vProxFiltro + aMaxThreads - 1,
+      TParallel.For(vNextFilter, vNextFilter + aMaxThreads - 1,
         procedure(i: Integer)
         var
-          vParametros : String;
+          vParameters : String;
         begin
           if FModels.FLstModels[i] is TAIClassificationModelNaive then begin
-            vParametros := ' model "Naive Bayes".';
-            vLogger.Log('Starting' + vParametros);
+            vParameters := ' model "Naive Bayes".';
+            vLogger.Log('Starting' + vParameters);
             InitializeNaiveBayesTest(TAIClassificationModelNaive(FModels.FLstModels[i]));
           end else if FModels.FLstModels[i] is TAIClassificationModelKNN then begin
-            vParametros := ' model "KNN".'
+            vParameters := ' model "KNN".'
             + #13#10 + 'K: ' + IntToStr(TAIClassificationModelKNN(FModels.FLstModels[i]).K);
-            vLogger.Log('Starting' + vParametros);
+            vLogger.Log('Starting' + vParameters);
             InitializeKNNTest(TAIClassificationModelKNN(FModels.FLstModels[i]));
           end else if FModels.FLstModels[i] is TAIClassificationModelTree then begin
-            vParametros := ' model "Tree decision".'
+            vParameters := ' model "Tree decision".'
             + #13#10 + 'Depth: ' + IntToStr(TAIClassificationModelTree(FModels.FLstModels[i]).FDepth)
             + #13#10 + 'Split Criterion: ' + SplitCriterionToString(TAIClassificationModelTree(FModels.FLstModels[i]).FSplitCriterion);
-            vLogger.Log('Starting' + vParametros);
+            vLogger.Log('Starting' + vParameters);
             InitializeTreeTest(TAIClassificationModelTree(FModels.FLstModels[i]));
           end;
-          vLogger.Log('Finish' + vParametros + #13#10 +
+          vLogger.Log('Finish' + vParameters + #13#10 +
                       'Accuracy: ' + FormatFloat('##0.000', FModels.FLstModels[i].Accuracy));
         end
       );
-    vProxFiltro := vProxFiltro + aMaxThreads;
+    vNextFilter := vNextFilter + aMaxThreads;
     end;
 
-
     if aCsvResultFile <> '' then begin
-      vLinha := 'Model,Parameters,Accuracy';
+      vLine := 'Model,Parameters,Accuracy';
 
       for vResult in FModels.FLstModels[0].Results.Values do begin
         vClassName := StringReplace(vResult.Name, ',', '', [rfReplaceAll]);
-        vLinha := vLinha +
-                            ',Tests class: ' + vClassName +
-                            ',True Positives class: ' + vClassName +
-                            ',False Negatives class: ' + vClassName+
-                            ',False Positives class: ' + vClassName;
+        vLine := vLine + ',Tests class: ' + vClassName +
+                         ',True Positives class: ' + vClassName +
+                         ',False Negatives class: ' + vClassName+
+                         ',False Positives class: ' + vClassName;
       end;
-      vArquivoCSV.Add(vLinha);
-
+      vCSVFile.Add(vLine);
 
       for i := 0 to FModels.FLstModels.Count-1 do begin
         if FModels.FLstModels[i] is TAIClassificationModelNaive then begin
-          vLinha := 'Naive Bayes,';
+          vLine := 'Naive Bayes,';
         end else if FModels.FLstModels[i] is TAIClassificationModelKNN then begin
-          vLinha := 'KNN,K=' + IntToStr(TAIClassificationModelKNN(FModels.FLstModels[i]).K);
+          vLine := 'KNN,K=' + IntToStr(TAIClassificationModelKNN(FModels.FLstModels[i]).K);
         end else if FModels.FLstModels[i] is TAIClassificationModelTree then begin
-          vLinha := 'Tree Decision,Depth=' + IntToStr(TAIClassificationModelTree(FModels.FLstModels[i]).Depth) + '-SplitCriterion=' +
+          vLine := 'Tree Decision,Depth=' + IntToStr(TAIClassificationModelTree(FModels.FLstModels[i]).Depth) + '-SplitCriterion=' +
                     SplitCriterionToString(TAIClassificationModelTree(FModels.FLstModels[i]).FSplitCriterion);
         end;
-        vLinha := vLinha + ',' + StringReplace(FormatFloat('##0.00', FModels.FLstModels[i].Accuracy), ',', '.', []);
-
+        vLine := vLine + ',' + StringReplace(FormatFloat('##0.00', FModels.FLstModels[i].Accuracy), ',', '.', []);
 
         for vResult in FModels.FLstModels[i].Results.Values do begin
-          vLinha := vLinha +
+          vLine := vLine +
                     ',' + IntToStr(vResult.Tests) +
                     ',' + IntToStr(vResult.TruePositives) +
                     ',' + IntToStr(vResult.FalseNegatives)+
                     ',' + IntToStr(vResult.FalsePositives);
         end;
 
-        vArquivoCSV.Add(vLinha);
+        vCSVFile.Add(vLine);
       end;
-      vArquivoCSV.SaveToFile(aCsvResultFile);
+      vCSVFile.SaveToFile(aCsvResultFile);
     end;
   finally
     vLogger.Free;
-    vArquivoCSV.Free;
+    vCSVFile.Free;
   end;
-
 end;
 
 constructor TAIClassificationModelKNN.Create(aK: Integer);
@@ -550,41 +536,41 @@ begin
   inherited Create;
 end;
 
-procedure SplitDataset(Dataset: TAIDatasetClassification; TestPercent: Double; aGetRandomSamples: Boolean;
+procedure SplitDataset(aDataset: TAIDatasetClassification; aTestPercent: Double; aGetRandomSamples: Boolean;
     aTrainDatas, aTestDatas: TList<TAIDatasetClassification>; aBaseCount: Integer);
 var
-  TrainSize, TestSize,vLastTest,
+  vTrainSize, vTestSize, vLastTest,
   i, j, vNextTrain, vNextTest : Integer;
-  RandomIndexes, Indexes: TList<Integer>;
+  vRandomIndexes, vIndexes: TList<Integer>;
   vTrainData, vTestData, vCleanData : TAIDatasetClassification;
 begin
-  if (TestPercent < 0) or (TestPercent > 1) then begin
-    raise Exception.Create('O percentual da base de teste deve ser entre 0 e 1.');
+  if (aTestPercent < 0) or (aTestPercent > 1) then begin
+    raise Exception.Create('The percentage of the test base must be between 0 and 1.');
   end;
 
   aTrainDatas.Clear;
   aTestDatas.Clear;
-  TestSize := Trunc(Length(Dataset) * TestPercent);
-  TrainSize := Length(Dataset) - TestSize;
+  vTestSize := Trunc(Length(aDataset) * aTestPercent);
+  vTrainSize := Length(aDataset) - vTestSize;
   SetLength(vCleanData, 0);
-  Indexes := TList<Integer>.Create;
+  vIndexes := TList<Integer>.Create;
   try
-    for i := 0 to Length(Dataset) - 1 do begin
-      Indexes.Add(i);
+    for i := 0 to Length(aDataset) - 1 do begin
+      vIndexes.Add(i);
     end;
 
     if aGetRandomSamples then begin
-      RandomIndexes := TList<Integer>.Create;
+      vRandomIndexes := TList<Integer>.Create;
       try
-        while Indexes.Count > 0 do begin
-          j := Random(Indexes.Count);
-          RandomIndexes.Add(Indexes[j]);
-          Indexes.Delete(j);
+        while vIndexes.Count > 0 do begin
+          j := Random(vIndexes.Count);
+          vRandomIndexes.Add(vIndexes[j]);
+          vIndexes.Delete(j);
         end;
-        Indexes.Free;
-        Indexes := RandomIndexes;
+        vIndexes.Free;
+        vIndexes := vRandomIndexes;
       except
-        RandomIndexes.Free;
+        vRandomIndexes.Free;
         raise;
       end;
     end;
@@ -596,79 +582,74 @@ begin
       vNextTrain := 0;
       vNextTest := 0;
 
-      SetLength(vTrainData, TrainSize);
-      SetLength(vTestData, TestSize);
+      SetLength(vTrainData, vTrainSize);
+      SetLength(vTestData, vTestSize);
 
       for j := 0 to vLastTest do begin
-        if vNextTrain < TrainSize then begin
-          vTrainData[vNextTrain] := Dataset[Indexes[j]];
+        if vNextTrain < vTrainSize then begin
+          vTrainData[vNextTrain] := aDataset[vIndexes[j]];
           inc(vNextTrain);
         end;
       end;
 
-      for j := vLastTest+1 to vLastTest + TestSize do begin
-        if (vNextTest < TestSize) then begin
-          vTestData[vNextTest] := Dataset[Indexes[j]];
+      for j := vLastTest+1 to vLastTest + vTestSize do begin
+        if (vNextTest < vTestSize) then begin
+          vTestData[vNextTest] := aDataset[vIndexes[j]];
           inc(vNextTest);
         end;
       end;
 
-      vLastTest := vLastTest + TestSize;
+      vLastTest := vLastTest + vTestSize;
 
-      for j := vLastTest+1 to Length(Dataset) - 1 do begin
-        if vNextTrain < TrainSize then begin
-          vTrainData[vNextTrain] := Dataset[Indexes[j]];
+      for j := vLastTest+1 to Length(aDataset) - 1 do begin
+        if vNextTrain < vTrainSize then begin
+          vTrainData[vNextTrain] := aDataset[vIndexes[j]];
           inc(vNextTrain);
         end;
       end;
-
       aTrainDatas.Add(vTrainData);
       aTestDatas.Add(vTestData);
-
     end;
-
   finally
-    Indexes.Free;
+    vIndexes.Free;
   end;
 end;
 
-
-procedure SplitDataset(Dataset: TAIDatasetRegression; TestPercent: Double; aGetRandomSamples: Boolean;
+procedure SplitDataset(aDataset: TAIDatasetRegression; aTestPercent: Double; aGetRandomSamples: Boolean;
     aTrainDatas, aTestDatas: TList<TAIDatasetRegression>; aBaseCount: Integer); overload;
-
 var
-  TrainSize, TestSize,vLastTest,
+  vTrainSize, vTestSize, vLastTest,
   i, j, vNextTrain, vNextTest : Integer;
-  RandomIndexes, Indexes: TList<Integer>;
+  vRandomIndexes, vIndexes: TList<Integer>;
   vTrainData, vTestData, vCleanData : TAIDatasetRegression;
 begin
-  if (TestPercent < 0) or (TestPercent > 1) then begin
-    raise Exception.Create('O percentual da base de teste deve ser entre 0 e 1.');
+  if (aTestPercent < 0) or (aTestPercent > 1) then begin
+    raise Exception.Create('The percentage of the test base must be between 0 and 1.');
   end;
 
   aTrainDatas.Clear;
   aTestDatas.Clear;
-  TestSize := Trunc(Length(Dataset) * TestPercent);
-  TrainSize := Length(Dataset) - TestSize;
+  vTestSize := Trunc(Length(aDataset) * aTestPercent);
+  vTrainSize := Length(aDataset) - vTestSize;
   SetLength(vCleanData, 0);
-  Indexes := TList<Integer>.Create;
+  vIndexes := TList<Integer>.Create;
   try
-    for i := 0 to Length(Dataset) - 1 do begin
-      Indexes.Add(i);
+    for i := 0 to Length(aDataset) - 1 do begin
+      vIndexes.Add(i);
     end;
 
     if aGetRandomSamples then begin
-      RandomIndexes := TList<Integer>.Create;
+      vRandomIndexes := TList<Integer>.Create;
       try
-        while Indexes.Count > 0 do begin
-          j := Random(Indexes.Count);
-          RandomIndexes.Add(Indexes[j]);
-          Indexes.Delete(j);
+        while vIndexes.Count > 0 do begin
+          j := Random(vIndexes.Count);
+          vRandomIndexes.Add(vIndexes[j]);
+          vIndexes.Delete(j);
         end;
-        Indexes.Free;
-        Indexes := RandomIndexes;
+        vIndexes.Free;
+        vIndexes := vRandomIndexes;
       except
-        RandomIndexes.Free;
+        vRandomIndexes.Free;
         raise;
       end;
     end;
@@ -680,39 +661,36 @@ begin
       vNextTrain := 0;
       vNextTest := 0;
 
-      SetLength(vTrainData, TrainSize);
-      SetLength(vTestData, TestSize);
+      SetLength(vTrainData, vTrainSize);
+      SetLength(vTestData, vTestSize);
 
       for j := 0 to vLastTest do begin
-        if vNextTrain < TrainSize then begin
-          vTrainData[vNextTrain] := Dataset[Indexes[j]];
+        if vNextTrain < vTrainSize then begin
+          vTrainData[vNextTrain] := aDataset[vIndexes[j]];
           inc(vNextTrain);
         end;
       end;
 
-      for j := vLastTest+1 to vLastTest + TestSize do begin
-        if (vNextTest < TestSize) then begin
-          vTestData[vNextTest] := Dataset[Indexes[j]];
+      for j := vLastTest+1 to vLastTest + vTestSize do begin
+        if (vNextTest < vTestSize) then begin
+          vTestData[vNextTest] := aDataset[vIndexes[j]];
           inc(vNextTest);
         end;
       end;
 
-      vLastTest := vLastTest + TestSize;
+      vLastTest := vLastTest + vTestSize;
 
-      for j := vLastTest+1 to Length(Dataset) - 1 do begin
-        if vNextTrain < TrainSize then begin
-          vTrainData[vNextTrain] := Dataset[Indexes[j]];
+      for j := vLastTest+1 to Length(aDataset) - 1 do begin
+        if vNextTrain < vTrainSize then begin
+          vTrainData[vNextTrain] := aDataset[vIndexes[j]];
           inc(vNextTrain);
         end;
       end;
-
       aTrainDatas.Add(vTrainData);
       aTestDatas.Add(vTestData);
-
     end;
-
   finally
-    Indexes.Free;
+    vIndexes.Free;
   end;
 end;
 
@@ -770,16 +748,16 @@ begin
 end;
 
 procedure TAIRegressionSelector.RunTests(aCsvResultFile, aLogFile : String;
-                                            aMaxThreads : Integer = 0;
-                                            aPercDatasetTest : Integer = 25;
-                                            aRandomDataset : Boolean = True;
-                                            aCrossValidation : Boolean = True);
+                                         aMaxThreads : Integer = 0;
+                                         aPercDatasetTest : Integer = 25;
+                                         aRandomDataset : Boolean = True;
+                                         aCrossValidation : Boolean = True);
 var
-  vLinha : String;
-  i, vProxFiltro,
+  vLine : String;
+  i, vNextFilter,
   vBaseCount : Integer;
   vLogger : TLogger;
-  vArquivoCSV : TStringList;
+  vCSVFile : TStringList;
 begin
   if aPercDatasetTest > 90 then begin
     raise Exception.Create('The percentage of the test base should not be more than 0.9.');
@@ -796,7 +774,7 @@ begin
     aMaxThreads := Min(aMaxThreads, PCThreadCount);
   end;
   vLogger := TLogger.Create(aLogFile);
-  vArquivoCSV := TStringList.Create;
+  vCSVFile := TStringList.Create;
   try
     vLogger.Log('Spliting Dataset.');
     if aCrossValidation then begin
@@ -808,73 +786,72 @@ begin
     vLogger.Log('Dataset splited.');
     vLogger.Log('Samples to train: ' + IntToStr(High(FTrainDatas[0])));
     vLogger.Log('Samples to test: ' + IntToStr(High(FTestDatas[0])));
-    vProxFiltro := 0;
-    while vProxFiltro < FModels.FLstModels.Count do begin
-      if vProxFiltro + aMaxThreads > FModels.FLstModels.Count then begin
-        aMaxThreads := FModels.FLstModels.Count - vProxFiltro;
+    vNextFilter := 0;
+    while vNextFilter < FModels.FLstModels.Count do begin
+      if vNextFilter + aMaxThreads > FModels.FLstModels.Count then begin
+        aMaxThreads := FModels.FLstModels.Count - vNextFilter;
       end;
-      TParallel.For(vProxFiltro, vProxFiltro + aMaxThreads - 1,
+      TParallel.For(vNextFilter, vNextFilter + aMaxThreads - 1,
         procedure(i: Integer)
         var
-          vParametros : String;
+          vParameters : String;
         begin
           if FModels.FLstModels[i] is TAIRegressionModelRidge then begin
-            vParametros := ' model "Linear Ridge".'
+            vParameters := ' model "Linear Ridge".'
             + #13#10 + 'Alfa: ' + FormatFloat('##0.000', TAIRegressionModelRidge(FModels.FLstModels[i]).FAlfa);
-            vLogger.Log('Starting' + vParametros);
+            vLogger.Log('Starting' + vParameters);
             InitializeLinearRidgeTest(TAIRegressionModelRidge(FModels.FLstModels[i]));
           end else if FModels.FLstModels[i] is TAIRegressionModelKNN then begin
-            vParametros := ' model "KNN".'
+            vParameters := ' model "KNN".'
             + #13#10 + 'K: ' + IntToStr(TAIRegressionModelKNN(FModels.FLstModels[i]).K);
-            vLogger.Log('Starting' + vParametros);
+            vLogger.Log('Starting' + vParameters);
             InitializeKNNTest(TAIRegressionModelKNN(FModels.FLstModels[i]));
           end else if FModels.FLstModels[i] is TAIRegressionModelLinear then begin
-            vParametros := ' model "Linear Regression".';
-            vLogger.Log('Starting' + vParametros);
+            vParameters := ' model "Linear Regression".';
+            vLogger.Log('Starting' + vParameters);
             InitializeLinearRegressionTest(TAIRegressionModelLinear(FModels.FLstModels[i]));
           end;
           FModels.FLstModels[i].GenerateMetrics;
 
-          vLogger.Log('Finish' + vParametros + #13#10 +
+          vLogger.Log('Finish' + vParameters + #13#10 +
                       'R2: ' + FormatFloat('##0.000', FModels.FLstModels[i].FR2)+
                       'RMSE: ' + FormatFloat('##0.000', FModels.FLstModels[i].FRMSE)+
                       'MSE: ' + FormatFloat('##0.000', FModels.FLstModels[i].FMSE)+
                       'MAE: ' + FormatFloat('##0.000', FModels.FLstModels[i].FMAE));
         end
       );
-    vProxFiltro := vProxFiltro + aMaxThreads;
+    vNextFilter := vNextFilter + aMaxThreads;
     end;
 
     if aCsvResultFile <> '' then begin
-      vLinha := 'Model,Parameters,R2,RMSE,MSE,MAE';
+      vLine := 'Model,Parameters,R2,RMSE,MSE,MAE';
 
-      vArquivoCSV.Add(vLinha);
+      vCSVFile.Add(vLine);
 
 
       for i := 0 to FModels.FLstModels.Count-1 do begin
         if FModels.FLstModels[i] is TAIRegressionModelLinear then begin
-          vLinha := 'Linear Regression,';
+          vLine := 'Linear Regression,';
         end else if FModels.FLstModels[i] is TAIRegressionModelKNN then begin
-          vLinha := 'KNN,K=' + IntToStr(TAIRegressionModelKNN(FModels.FLstModels[i]).K);
+          vLine := 'KNN,K=' + IntToStr(TAIRegressionModelKNN(FModels.FLstModels[i]).K);
         end else if FModels.FLstModels[i] is TAIRegressionModelRidge then begin
-          vLinha := 'Linear Ridge,Alfa=' + StringReplace(FormatFloat('##0.000', TAIRegressionModelRidge(FModels.FLstModels[i]).FAlfa), ',', '.', []);
+          vLine := 'Linear Ridge,Alfa=' + StringReplace(FormatFloat('##0.000', TAIRegressionModelRidge(FModels.FLstModels[i]).FAlfa), ',', '.', []);
         end;
-        vLinha := vLinha + ',' +
+        vLine := vLine + ',' +
                   StringReplace(FormatFloat('##0.000', FModels.FLstModels[i].FR2), ',', '.', []) + ',' +
                   StringReplace(FormatFloat('##0.000', FModels.FLstModels[i].FRMSE), ',', '.', []) + ',' +
                   StringReplace(FormatFloat('##0.000', FModels.FLstModels[i].FMSE), ',', '.', []) + ',' +
                   StringReplace(FormatFloat('##0.000', FModels.FLstModels[i].FMAE), ',', '.', []);
 
 
-        vArquivoCSV.Add(vLinha);
+        vCSVFile.Add(vLine);
       end;
-      vArquivoCSV.SaveToFile(aCsvResultFile);
+      vCSVFile.SaveToFile(aCsvResultFile);
     end;
   finally
     vLogger.Free;
-    vArquivoCSV.Free;
+    vCSVFile.Free;
   end;
-
 end;
 
 destructor TAIRegressionTest.Destroy;
@@ -885,31 +862,31 @@ end;
 
 procedure TAIRegressionTest.GenerateMetrics;
 var
-  MeanCorrectValue, R2Numerator, R2Denominator: Double;
-  Value: Double;
+  vMeanCorrectValue, vR2Numerator, vR2Denominator: Double;
+  vValue: Double;
 begin
   if FSampleCount = 0 then
   begin
-    Writeln('Nenhuma amostra processada.');
+    Writeln('No samples processed.');
     Exit;
   end;
 
-  MeanCorrectValue := FSumCorrectValues / FSampleCount;
+  vMeanCorrectValue := FSumCorrectValues / FSampleCount;
 
   FSumSquaredTotal := 0;
-  for Value in FCorrectValues do
+  for vValue in FCorrectValues do
   begin
-    FSumSquaredTotal := FSumSquaredTotal + Sqr(Value - MeanCorrectValue);
+    FSumSquaredTotal := FSumSquaredTotal + Sqr(vValue - vMeanCorrectValue);
   end;
 
   FMAE := FSumAbsoluteErrors / FSampleCount;
   FMSE := FSumSquaredErrors / FSampleCount;
   FRMSE := Sqrt(FMSE);
 
-  R2Numerator := FSumSquaredTotal - FSumSquaredErrors;
-  R2Denominator := FSumSquaredTotal;
-  if R2Denominator <> 0 then
-    FR2 := R2Numerator / R2Denominator
+  vR2Numerator := FSumSquaredTotal - FSumSquaredErrors;
+  vR2Denominator := FSumSquaredTotal;
+  if vR2Denominator <> 0 then
+    FR2 := vR2Numerator / vR2Denominator
   else
     FR2 := 0;
 end;
@@ -997,12 +974,9 @@ begin
   end;
 end;
 
-
-
 destructor TAIClassificationModelTree.Destroy;
 begin
   FModel.Free;
-
   inherited;
 end;
 
@@ -1046,8 +1020,6 @@ begin
   FLstModels.Add(TAIRegressionModelRidge.Create(aAlfa))
 end;
 
-
-
 constructor TAIRegressionModels.Create;
 begin
   FLstModels := TList<TAIRegressionTest>.Create;
@@ -1076,22 +1048,21 @@ end;
 
 function TAIClassificationTest.Accuracy: Double;
 var
-  vTests, vAcertos : Integer;
+  vTests, vHits : Integer;
   vPair : TPair<string, TClassResult>;
   vClass : TClassResult;
-
 begin
   vTests := 0;
-  vAcertos := 0;
+  vHits := 0;
   for vPair in FResults do begin
     vClass := vPair.Value;
     inc(vTests, vClass.Tests);
-    inc(vAcertos, vClass.TruePositives);
+    inc(vHits, vClass.TruePositives);
   end;
   if vTests = 0 then begin
     Result := 0;
   end else begin
-    Result := vAcertos / vTests;
+    Result := vHits / vTests;
   end;
   Result := Result * 100;
 end;
@@ -1242,55 +1213,55 @@ begin
   inherited;
 end;
 
-function SplitDatasetRec(Percentual: Double; MatrizRecomendacao: TArray<TArray<Double>>): TArray<TArray<Integer>>;
+function SplitDatasetRec(Percentual: Double; MatrixRecommendation: TArray<TArray<Double>>): TArray<TArray<Integer>>;
 var
-  NumUsuarios, NumItens, NumItensTeste, i, j, Index: Integer;
-  ItensConsumidos, ItensTesteUsuario: TArray<Integer>;
+  vNumUsers, vNumItems, vNumTestItems, i, j, Index: Integer;
+  vItemsConsumed, vItemsTestUsers: TArray<Integer>;
 begin
-  NumUsuarios := Length(MatrizRecomendacao);
-  SetLength(Result, NumUsuarios);
+  vNumUsers := Length(MatrixRecommendation);
+  SetLength(Result, vNumUsers);
 
-  for i := 0 to NumUsuarios - 1 do begin
-    NumItens := Length(MatrizRecomendacao[i]);
+  for i := 0 to vNumUsers - 1 do begin
+    vNumItems := Length(MatrixRecommendation[i]);
 
-    ItensConsumidos := [];
-    for j := 0 to NumItens - 1 do begin
-      if MatrizRecomendacao[i][j] > 0 then begin
-        SetLength(ItensConsumidos, Length(ItensConsumidos) + 1);
-        ItensConsumidos[High(ItensConsumidos)] := j;
+    vItemsConsumed := [];
+    for j := 0 to vNumItems - 1 do begin
+      if MatrixRecommendation[i][j] > 0 then begin
+        SetLength(vItemsConsumed, Length(vItemsConsumed) + 1);
+        vItemsConsumed[High(vItemsConsumed)] := j;
       end;
     end;
-    if Length(ItensConsumidos) > 1 then begin
-      NumItensTeste := Ceil(Length(ItensConsumidos) * Percentual / 100);
-      if NumItensTeste < 1 then
-        NumItensTeste := 1;
+    if Length(vItemsConsumed) > 1 then begin
+      vNumTestItems := Ceil(Length(vItemsConsumed) * Percentual / 100);
+      if vNumTestItems < 1 then
+        vNumTestItems := 1;
     end else begin
-      NumItensTeste := 0;
+      vNumTestItems := 0;
     end;
 
-    SetLength(ItensTesteUsuario, NumItensTeste);
+    SetLength(vItemsTestUsers, vNumTestItems);
 
-    for j := 0 to NumItensTeste - 1 do
+    for j := 0 to vNumTestItems - 1 do
     begin
-      Index := Random(Length(ItensConsumidos));
+      Index := Random(Length(vItemsConsumed));
 
-      ItensTesteUsuario[j] := ItensConsumidos[Index];
+      vItemsTestUsers[j] := vItemsConsumed[Index];
 
-      ItensConsumidos[Index] := ItensConsumidos[High(ItensConsumidos)];
-      SetLength(ItensConsumidos, Length(ItensConsumidos) - 1);
+      vItemsConsumed[Index] := vItemsConsumed[High(vItemsConsumed)];
+      SetLength(vItemsConsumed, Length(vItemsConsumed) - 1);
     end;
 
-    Result[i] := ItensTesteUsuario;
+    Result[i] := vItemsTestUsers;
   end;
 end;
 
 procedure TAIRecommendationSelector.RunTestsUserUser(aCsvResultFile, aLogFile : String;
-                                                    aMaxThreads : Integer = 0);
+                                                     aMaxThreads : Integer = 0);
 var
-  vLinha : String;
-  i, vProxFiltro : Integer;
+  vLine : String;
+  i, vNextFilter : Integer;
   vLogger : TLogger;
-  vArquivoCSV : TStringList;
+  vCSVFile : TStringList;
   vItemsToTest :  TArray<TArray<Integer>>;
 begin
   if FModels.FLstModels.Count = 0 then begin
@@ -1302,71 +1273,70 @@ begin
     aMaxThreads := Min(aMaxThreads, PCThreadCount);
   end;
   vLogger := TLogger.Create(aLogFile);
-  vArquivoCSV := TStringList.Create;
+  vCSVFile := TStringList.Create;
   vItemsToTest := SplitDatasetRec(25, FDataset);
-  vProxFiltro := 0;
+  vNextFilter := 0;
   try
-    while vProxFiltro < FModels.FLstModels.Count do begin
-      if vProxFiltro + aMaxThreads > FModels.FLstModels.Count then begin
-        aMaxThreads := FModels.FLstModels.Count - vProxFiltro;
+    while vNextFilter < FModels.FLstModels.Count do begin
+      if vNextFilter + aMaxThreads > FModels.FLstModels.Count then begin
+        aMaxThreads := FModels.FLstModels.Count - vNextFilter;
       end;
-      TParallel.For(vProxFiltro, vProxFiltro + aMaxThreads - 1,
+      TParallel.For(vNextFilter, vNextFilter + aMaxThreads - 1,
         procedure(i: Integer)
         var
-          vParametros : String;
+          vParameters : String;
           vModel : TAIRecommendationModel;
         begin
           if not FModels.FLstModels[i].FItem then begin
             vModel := FModels.FLstModels[i];
-            vParametros := ' model "Recommender User-User".';
-            vLogger.Log('Starting' + vParametros);
+            vParameters := ' model "Recommender User-User".';
+            vLogger.Log('Starting' + vParameters);
             if vModel.Model <> nil then begin
               vModel.Model.Free;
             end;
             vModel.Model := TRecommender.Create(FDataset, FNormalizationRange, vModel.FItemsToRecommendCount,
                              vModel.FK, vModel.FAggregationMode, vModel.FDistanceMethod, False);
             vModel.Model.CalculateUserRecall(vModel.FAccurary, vItemsToTest);
-            vLogger.Log('Finish' + vParametros + #13#10 +
+            vLogger.Log('Finish' + vParameters + #13#10 +
                         'Accuracy: ' + FormatFloat('##0.000', vModel.Accuracy));
             vModel.Model.ClearDataset;
           end;
         end
       );
-    vProxFiltro := vProxFiltro + aMaxThreads;
+    vNextFilter := vNextFilter + aMaxThreads;
     end;
 
     if aCsvResultFile <> '' then begin
-      vLinha := 'ItemsToRecommend,K,AggregationMethod,DistanceMethod,Accuracy';
+      vLine := 'ItemsToRecommend,K,AggregationMethod,DistanceMethod,Accuracy';
 
-      vArquivoCSV.Add(vLinha);
+      vCSVFile.Add(vLine);
 
       for i := 0 to FModels.FLstModels.Count-1 do begin
         if not FModels.FLstModels[i].FItem then begin
-          vLinha := IntToStr(FModels.FLstModels[i].FItemsToRecommendCount) + ',' +
+          vLine := IntToStr(FModels.FLstModels[i].FItemsToRecommendCount) + ',' +
                     IntToStr(FModels.FLstModels[i].FK) + ',' +
                     AggregModeToStr(FModels.FLstModels[i].FAggregationMode) + ',' +
                     DistanceMethodToStr(FModels.FLstModels[i].FDistanceMethod) + ',' +
                     StringReplace(FormatFloat('##0.000', FModels.FLstModels[i].Accuracy), ',', '.', []);
 
-          vArquivoCSV.Add(vLinha);
+          vCSVFile.Add(vLine);
         end;
       end;
-      vArquivoCSV.SaveToFile(aCsvResultFile);
+      vCSVFile.SaveToFile(aCsvResultFile);
     end;
   finally
     vLogger.Free;
-    vArquivoCSV.Free;
+    vCSVFile.Free;
   end;
-
 end;
 
 procedure TAIRecommendationSelector.RunTestsItemItem(aCsvResultFile, aLogFile : String;
-                                                    aMaxThreads : Integer = 0);
+                                                     aMaxThreads : Integer = 0);
 var
-  vLinha : String;
-  i, vProxFiltro : Integer;
+  vLine : String;
+  i, vNextFilter : Integer;
   vLogger : TLogger;
-  vArquivoCSV : TStringList;
+  vCSVFile : TStringList;
 begin
   if FModels.FLstModels.Count = 0 then begin
     raise Exception.Create('Add a model to test before running the tests.');
@@ -1377,60 +1347,59 @@ begin
     aMaxThreads := Min(aMaxThreads, PCThreadCount);
   end;
   vLogger := TLogger.Create(aLogFile);
-  vArquivoCSV := TStringList.Create;
-  vProxFiltro := 0;
+  vCSVFile := TStringList.Create;
+  vNextFilter := 0;
   try
-    while vProxFiltro < FModels.FLstModels.Count do begin
-      if vProxFiltro + aMaxThreads > FModels.FLstModels.Count then begin
-        aMaxThreads := FModels.FLstModels.Count - vProxFiltro;
+    while vNextFilter < FModels.FLstModels.Count do begin
+      if vNextFilter + aMaxThreads > FModels.FLstModels.Count then begin
+        aMaxThreads := FModels.FLstModels.Count - vNextFilter;
       end;
-      TParallel.For(vProxFiltro, vProxFiltro + aMaxThreads - 1,
+      TParallel.For(vNextFilter, vNextFilter + aMaxThreads - 1,
         procedure(i: Integer)
         var
-          vParametros : String;
+          vParameters : String;
           vModel : TAIRecommendationModel;
         begin
           if FModels.FLstModels[i].FItem then begin
             vModel := FModels.FLstModels[i];
-            vParametros := ' model "Recommender Item-Item".';
-            vLogger.Log('Starting' + vParametros);
+            vParameters := ' model "Recommender Item-Item".';
+            vLogger.Log('Starting' + vParameters);
             if vModel.Model <> nil then begin
               vModel.Model.Free;
             end;
             vModel.Model := TRecommender.Create(FDataset, FNormalizationRange, vModel.FItemsToRecommendCount,
                              vModel.FK, vModel.FAggregationMode, vModel.FDistanceMethod, False);
             vModel.Model.CalculateItemRecall(vModel.FAccurary);
-            vLogger.Log('Finish' + vParametros + #13#10 +
+            vLogger.Log('Finish' + vParameters + #13#10 +
                         'Accuracy: ' + FormatFloat('##0.000', vModel.Accuracy));
             vModel.Model.ClearDataset;
           end;
         end
       );
-    vProxFiltro := vProxFiltro + aMaxThreads;
+    vNextFilter := vNextFilter + aMaxThreads;
     end;
 
     if aCsvResultFile <> '' then begin
-      vLinha := 'ItemsToRecommend,K,DistanceMethod,Accuracy';
+      vLine := 'ItemsToRecommend,K,DistanceMethod,Accuracy';
 
-      vArquivoCSV.Add(vLinha);
+      vCSVFile.Add(vLine);
 
       for i := 0 to FModels.FLstModels.Count-1 do begin
         if FModels.FLstModels[i].FItem then begin
-          vLinha := IntToStr(FModels.FLstModels[i].FItemsToRecommendCount) + ',' +
+          vLine := IntToStr(FModels.FLstModels[i].FItemsToRecommendCount) + ',' +
                     IntToStr(FModels.FLstModels[i].FK) + ',' +
                     DistanceMethodToStr(FModels.FLstModels[i].FDistanceMethod) + ',' +
                     StringReplace(FormatFloat('##0.000', FModels.FLstModels[i].Accuracy), ',', '.', []);
 
-          vArquivoCSV.Add(vLinha);
+          vCSVFile.Add(vLine);
         end;
       end;
-      vArquivoCSV.SaveToFile(aCsvResultFile);
+      vCSVFile.SaveToFile(aCsvResultFile);
     end;
   finally
     vLogger.Free;
-    vArquivoCSV.Free;
+    vCSVFile.Free;
   end;
-
 end;
 
 { TAIRecommendationModels }
@@ -1477,18 +1446,17 @@ begin
   FCorrectValues := TList<Double>.Create;
 end;
 
-
 procedure TAIRegressionTest.ProcessResult(aPredictedValue, aCorrectValue: Double);
 var
-  Error, SquaredError: Double;
+  vError, vSquaredError: Double;
 begin
   Inc(FSampleCount);
 
-  Error := aPredictedValue - aCorrectValue;
-  SquaredError := Sqr(Error);
+  vError := aPredictedValue - aCorrectValue;
+  vSquaredError := Sqr(vError);
 
-  FSumSquaredErrors := FSumSquaredErrors + SquaredError;
-  FSumAbsoluteErrors := FSumAbsoluteErrors + Abs(Error);
+  FSumSquaredErrors := FSumSquaredErrors + vSquaredError;
+  FSumAbsoluteErrors := FSumAbsoluteErrors + Abs(vError);
   FSumCorrectValues := FSumCorrectValues + aCorrectValue;
 
   FCorrectValues.Add(aCorrectValue);
