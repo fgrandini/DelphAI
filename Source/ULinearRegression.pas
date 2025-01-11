@@ -14,8 +14,6 @@ type
     procedure TrainModel;
     function SumVector(const aValues: TArray<Double>): Double;
     function MediaVector(const aValues: TArray<Double>): Double;
-    function SumProducts(const X, Y: TArray<Double>): Double;
-    function SumSquared(const X: TArray<Double>): Double;
   public
     procedure Train(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
     procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
@@ -46,26 +44,6 @@ end;
 function TLinearRegression.MediaVector(const aValues: TArray<Double>): Double;
 begin
   Result := SumVector(aValues) / Length(aValues);
-end;
-
-function TLinearRegression.SumProducts(const X, Y: TArray<Double>): Double;
-var
-  i: Integer;
-begin
-  Result := 0;
-  for i := 0 to High(X) do begin
-    Result := Result + (X[i] * Y[i]);
-  end;
-end;
-
-function TLinearRegression.SumSquared(const X: TArray<Double>): Double;
-var
-  i: Integer;
-begin
-  Result := 0;
-  for i := 0 to High(X) do begin
-    Result := Result + (X[i] * X[i]);
-  end;
 end;
 
 procedure TLinearRegression.TrainModel;
