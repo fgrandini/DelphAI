@@ -12,8 +12,6 @@ type
   function DBSCAN(aData : String; aEps: Double; aMinPts: Integer; aHasHeader : Boolean = True): TArray<Integer>; overload;
   function DBSCAN(aData : TDataSet; aEps: Double; aMinPts: Integer): TArray<Integer>; overload;
   function DBSCAN(aData : TAIDatasetClustering; aEps: Double; aMinPts: Integer): TArray<Integer>; overload;
-  function RegionQuery(const aData: TAIDatasetClustering; const aPointIdx: Integer; aEps: Double): TList<Integer>;
-  procedure ExpandCluster(const aData: TAIDatasetClustering; const aPointIdx: Integer; const aNeighbors: TList<Integer>; aClusterIdx: Integer; var aLabels: TArray<Integer>; aEps: Double; aMinPts: Integer);
 
 implementation
 

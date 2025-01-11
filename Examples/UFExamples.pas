@@ -330,7 +330,7 @@ end;
 
 procedure TFDelphAIExamples.Button25Click(Sender: TObject);
 begin
-  ShowMessage('In development');
+  ShellExecute(0, 'open', PChar('https://delphai.gitbook.io/delphai/en'), nil, nil, SW_SHOWNORMAL);
 end;
 
 procedure TFDelphAIExamples.Button26Click(Sender: TObject);

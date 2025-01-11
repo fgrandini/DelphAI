@@ -12,16 +12,15 @@ type
     FB0: Double;
     FCoefficients: TArray<Double>;
     procedure TrainModel;
+    function SumVector(const aValues: TArray<Double>): Double;
+    function MediaVector(const aValues: TArray<Double>): Double;
+    function SumProducts(const X, Y: TArray<Double>): Double;
+    function SumSquared(const X: TArray<Double>): Double;
   public
     procedure Train(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
     procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
     procedure Train(aTrainingData : TDataSet); overload;
     function Predict(aSample: TAISampleAtr; aInputNormalized : Boolean = False): Double;
-
-    function SumVector(const aValues: TArray<Double>): Double;
-    function MediaVector(const aValues: TArray<Double>): Double;
-    function SumProducts(const X, Y: TArray<Double>): Double;
-    function SumSquared(const X: TArray<Double>): Double;
 
     function ToJson: TJsonObject;
     procedure FromJson(aJson: TJsonObject);

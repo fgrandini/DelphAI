@@ -12,12 +12,6 @@ type
   function KMeans(aData: TAIDatasetClustering; aK, aMaxIterations, aNumInitializations: Integer): TArray<Integer>; overload;
   function KMeans(aData: String; aK, aMaxIterations, aNumInitializations: Integer; aHasHeader : Boolean = True): TArray<Integer>; overload;
   function KMeans(aData: TDataSet; aK, aMaxIterations, aNumInitializations: Integer): TArray<Integer>; overload;
-  function ArraysAreEqual(const A, B: TArray<Integer>): Boolean;
-  function InitializeCentroids(const aData: TAIDatasetClustering; aK: Integer): TCentroids;
-  function InitializeCentroidsPlusPlus(const aData: TAIDatasetClustering; aK: Integer): TCentroids;
-  function AssignClusters(const aData: TAIDatasetClustering; const aCentroids: TCentroids): TArray<Integer>;
-  function UpdateCentroids(const aData: TAIDatasetClustering; const aClusters: TArray<Integer>; aK: Integer): TCentroids;
-  function CalculateInertia(const aData: TAIDatasetClustering; const aClusters: TArray<Integer>; const aCentroids: TCentroids): Double;
 
 implementation
 

@@ -12,10 +12,6 @@ type
   function MeanShift(aData : TAIDatasetClustering; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
   function MeanShift(aData : String; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300; aHasHeader : Boolean = True): TArray<Integer>; overload;
   function MeanShift(aData : TDataSet; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
-  function GaussianKernel(aDistance, aBandwidth: Double): Double;
-  function ShiftPoint(const aPoint: TAISampleAtr; const aData: TAIDatasetClustering; aBandwidth: Double): TAISampleAtr;
-  function Converged(const aOldPoint, aNewPoint: TAISampleAtr; aEpsilon: Double): Boolean;
-  function AllPointsConverged(const aConvergedList: TArray<Boolean>): Boolean;
 
 implementation
 
