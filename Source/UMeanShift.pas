@@ -9,75 +9,64 @@ type
   TAISampleAtr = TArray<Double>;
   TAIDatasetClustering = TArray<TAISampleAtr>;
 
-    function MeanShift(aData : TAIDatasetClustering; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
-    function MeanShift(aData : String; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300; aHasHeader : Boolean = True): TArray<Integer>; overload;
-    function MeanShift(aData : TDataSet; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
+  function MeanShift(aData : TAIDatasetClustering; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
+  function MeanShift(aData : String; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300; aHasHeader : Boolean = True): TArray<Integer>; overload;
+  function MeanShift(aData : TDataSet; aBandwidth, aEpsilon : Double; aMaxIterations: Integer = 300): TArray<Integer>; overload;
 
 implementation
 
 uses
   UAITypes, UAuxGlobal;
 
-function Distance(const A, B: TAISampleAtr): Double;
-var
-  i: Integer;
-  Sum: Double;
+function GaussianKernel(aDistance, aBandwidth: Double): Double;
 begin
-  Sum := 0.0;
-  for i := Low(A) to High(A) do
-    Sum := Sum + Sqr(A[i] - B[i]);
-  Result := Sqrt(Sum);
+  Result := Exp(-0.5 * Sqr(aDistance / aBandwidth));
 end;
 
-function GaussianKernel(Distance, aBandwidth: Double): Double;
-begin
-  Result := Exp(-0.5 * Sqr(Distance / aBandwidth));
-end;
-
-function ShiftPoint(const Point: TAISampleAtr; const aData: TAIDatasetClustering; aBandwidth: Double): TAISampleAtr;
+function ShiftPoint(const aPoint: TAISampleAtr; const aData: TAIDatasetClustering; aBandwidth: Double): TAISampleAtr;
 var
   i, j: Integer;
-  WeightSum, KernelVal: Double;
-  ShiftedPoint: TAISampleAtr;
+  vWeightSum, vKernelVal: Double;
+  vShiftedPoint: TAISampleAtr;
 begin
-  SetLength(ShiftedPoint, Length(Point));
-  WeightSum := 0.0;
+  SetLength(vShiftedPoint, Length(aPoint));
+  vWeightSum := 0.0;
 
   for i := 0 to High(aData) do
   begin
-    KernelVal := GaussianKernel(Distance(Point, aData[i]), aBandwidth);
-    WeightSum := WeightSum + KernelVal;
+    vKernelVal := GaussianKernel(Distance(aPoint, aData[i]), aBandwidth);
+    vWeightSum := vWeightSum + vKernelVal;
 
-    for j := Low(Point) to High(Point) do
-      ShiftedPoint[j] := ShiftedPoint[j] + (aData[i][j] * KernelVal);
+    for j := Low(aPoint) to High(aPoint) do
+      vShiftedPoint[j] := vShiftedPoint[j] + (aData[i][j] * vKernelVal);
   end;
 
-  for j := Low(Point) to High(Point) do
-    ShiftedPoint[j] := ShiftedPoint[j] / WeightSum;
+  for j := Low(aPoint) to High(aPoint) do
+    vShiftedPoint[j] := vShiftedPoint[j] / vWeightSum;
 
-  Result := ShiftedPoint;
+  Result := vShiftedPoint;
 end;
 
-function Converged(const OldPoint, NewPoint: TAISampleAtr; Epsilon: Double): Boolean;
+function Converged(const aOldPoint, aNewPoint: TAISampleAtr; aEpsilon: Double): Boolean;
 var
   i: Integer;
 begin
-  for i := Low(OldPoint) to High(OldPoint) do
+  for i := Low(aOldPoint) to High(aOldPoint) do
   begin
-    if Abs(OldPoint[i] - NewPoint[i]) > Epsilon then
+    if Abs(aOldPoint[i] - aNewPoint[i]) > aEpsilon then
       Exit(False);
   end;
   Result := True;
 end;
 
-function AllPointsConverged(const ConvergedList: TArray<Boolean>): Boolean;
+function AllPointsConverged(const aConvergedList: TArray<Boolean>): Boolean;
 var
   i: Integer;
 begin
   Result := True;
-  for i := Low(ConvergedList) to High(ConvergedList) do
+  for i := Low(aConvergedList) to High(aConvergedList) do
   begin
-    if not ConvergedList[i] then
+    if not aConvergedList[i] then
     begin
       Result := False;
       Exit;
@@ -110,52 +99,52 @@ end;
 
 function MeanShift(aData: TAIDatasetClustering; aBandwidth, aEpsilon: Double; aMaxIterations: Integer): TArray<Integer>;
 var
-  i, j, Iteration, ClusterIdx: Integer;
-  ShiftedPoints: TAIDatasetClustering;
-  Labels: TArray<Integer>;
-  ConvergedList: TArray<Boolean>;
+  i, j, vIteration, vClusterIdx: Integer;
+  vShiftedPoints: TAIDatasetClustering;
+  vLabels: TArray<Integer>;
+  vConvergedList: TArray<Boolean>;
 begin
   if Length(aData) = 0 then begin
     raise Exception.Create('Dataset is empty.');
   end;
-  SetLength(ShiftedPoints, Length(aData));
-  SetLength(Labels, Length(aData));
-  SetLength(ConvergedList, Length(aData));
+  SetLength(vShiftedPoints, Length(aData));
+  SetLength(vLabels, Length(aData));
+  SetLength(vConvergedList, Length(aData));
 
-  FillChar(Labels[0], Length(Labels) * SizeOf(Integer), -1);
+  FillChar(vLabels[0], Length(vLabels) * SizeOf(Integer), -1);
 
   for i := 0 to High(aData) do
-    ShiftedPoints[i] := Copy(aData[i]);
+    vShiftedPoints[i] := Copy(aData[i]);
 
-  for Iteration := 0 to aMaxIterations - 1 do begin
+  for vIteration := 0 to aMaxIterations - 1 do begin
     for i := 0 to High(aData) do begin
-      if not ConvergedList[i] then begin
-        ShiftedPoints[i] := ShiftPoint(ShiftedPoints[i], aData, aBandwidth);
+      if not vConvergedList[i] then begin
+        vShiftedPoints[i] := ShiftPoint(vShiftedPoints[i], aData, aBandwidth);
 
-        if Converged(aData[i], ShiftedPoints[i], aEpsilon) then begin
-          ConvergedList[i] := True;
+        if Converged(aData[i], vShiftedPoints[i], aEpsilon) then begin
+          vConvergedList[i] := True;
         end;
       end;
     end;
 
-    if AllPointsConverged(ConvergedList) then begin
+    if AllPointsConverged(vConvergedList) then begin
       Break;
     end;
   end;
 
-  ClusterIdx := 0;
+  vClusterIdx := 0;
   for i := 0 to High(aData) do begin
-    if Labels[i] = -1 then begin
-      Inc(ClusterIdx);
+    if vLabels[i] = -1 then begin
+      Inc(vClusterIdx);
       for j := i to High(aData) do begin
-        if Distance(ShiftedPoints[i], ShiftedPoints[j]) < aBandwidth then begin
-          Labels[j] := ClusterIdx;
+        if Distance(vShiftedPoints[i], vShiftedPoints[j]) < aBandwidth then begin
+          vLabels[j] := vClusterIdx;
         end;
       end;
     end;
   end;
 
-  Result := Labels;
+  Result := vLabels;
 end;
 
 end.

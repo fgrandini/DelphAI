@@ -10,8 +10,12 @@ type
   TLinearRegression = class(TRegressionModel)
   private
     FB0: Double;
-    FCoeficientes: TArray<Double>;
+    FCoefficients: TArray<Double>;
     procedure TrainModel;
+    function SumVector(const aValues: TArray<Double>): Double;
+    function MediaVector(const aValues: TArray<Double>): Double;
+    function SumProducts(const X, Y: TArray<Double>): Double;
+    function SumSquared(const X: TArray<Double>): Double;
   public
     procedure Train(aTrainingData : TAIDatasetRegression; aNormalizationRange : TNormalizationRange); overload;
     procedure Train(aTrainingData : String; aHasHeader : Boolean = True); overload;
@@ -20,8 +24,8 @@ type
 
     function ToJson: TJsonObject;
     procedure FromJson(aJson: TJsonObject);
-    procedure SaveToFile(const FileName: string);
-    procedure LoadFromFile(const FileName: string);
+    procedure SaveToFile(const aFileName: string);
+    procedure LoadFromFile(const aFileName: string);
   end;
 
 implementation
@@ -29,22 +33,22 @@ implementation
 uses
   System.Classes, UAuxGlobal;
 
-function SomarVetor(const Valores: TArray<Double>): Double;
+function TLinearRegression.SumVector(const aValues: TArray<Double>): Double;
 var
   i: Integer;
 begin
   Result := 0;
-  for i := 0 to High(Valores) do begin
-    Result := Result + Valores[i];
+  for i := 0 to High(aValues) do begin
+    Result := Result + aValues[i];
   end;
 end;
 
-function MediaVetor(const Valores: TArray<Double>): Double;
+function TLinearRegression.MediaVector(const aValues: TArray<Double>): Double;
 begin
-  Result := SomarVetor(Valores) / Length(Valores);
+  Result := SumVector(aValues) / Length(aValues);
 end;
 
-function SomatorioProdutos(const X, Y: TArray<Double>): Double;
+function TLinearRegression.SumProducts(const X, Y: TArray<Double>): Double;
 var
   i: Integer;
 begin
@@ -54,7 +58,7 @@ begin
   end;
 end;
 
-function SomatorioQuadrados(const X: TArray<Double>): Double;
+function TLinearRegression.SumSquared(const X: TArray<Double>): Double;
 var
   i: Integer;
 begin
@@ -68,47 +72,47 @@ procedure TLinearRegression.TrainModel;
 var
   X: TArray<TArray<Double>>;
   Y: TArray<Double>;
-  mediasX: TArray<Double>;
-  mediaY: Double;
+  vMediasX: TArray<Double>;
+  vMediaY: Double;
   i, j: Integer;
-  somatorioProdutos, somatorioQuadrados: Double;
-  nAtributos: Integer;
+  vSumProducts, vSumSquares: Double;
+  vAttributes: Integer;
 begin
-  nAtributos := Length(FDataset[0].Key); 
+  vAttributes := Length(FDataset[0].Key);
 
   SetLength(X, Length(FDataset));
   SetLength(Y, Length(FDataset));
-  SetLength(mediasX, nAtributos);
-  SetLength(FCoeficientes, nAtributos);
+  SetLength(vMediasX, vAttributes);
+  SetLength(FCoefficients, vAttributes);
 
   for i := 0 to High(FDataset) do begin
     X[i] := FDataset[i].Key;
     Y[i] := FDataset[i].Value;
   end;
 
-  for j := 0 to nAtributos - 1 do begin
+  for j := 0 to vAttributes - 1 do begin
     for i := 0 to High(X) do begin
-      mediasX[j] := mediasX[j] + X[i][j];
+      vMediasX[j] := vMediasX[j] + X[i][j];
     end;
-    mediasX[j] := mediasX[j] / Length(X);
+    vMediasX[j] := vMediasX[j] / Length(X);
   end;
 
-  mediaY := MediaVetor(Y);
+  vMediaY := MediaVector(Y);
 
-  for j := 0 to nAtributos - 1 do begin
-    somatorioProdutos := 0;
-    somatorioQuadrados := 0;
+  for j := 0 to vAttributes - 1 do begin
+    vSumProducts := 0;
+    vSumSquares := 0;
     for i := 0 to High(X) do begin
-      somatorioProdutos := somatorioProdutos + (X[i][j] - mediasX[j]) * (Y[i] - mediaY);
-      somatorioQuadrados := somatorioQuadrados + Sqr(X[i][j] - mediasX[j]);
+      vSumProducts := vSumProducts + (X[i][j] - vMediasX[j]) * (Y[i] - vMediaY);
+      vSumSquares := vSumSquares + Sqr(X[i][j] - vMediasX[j]);
     end;
 
-    FCoeficientes[j] := somatorioProdutos / somatorioQuadrados;
+    FCoefficients[j] := vSumProducts / vSumSquares;
   end;
 
-  FB0 := mediaY;
-  for j := 0 to nAtributos - 1 do begin
-    FB0 := FB0 - FCoeficientes[j] * mediasX[j];
+  FB0 := vMediaY;
+  for j := 0 to vAttributes - 1 do begin
+    FB0 := FB0 - FCoefficients[j] * vMediasX[j];
   end;
 
   PopulateInputLenght;
@@ -155,38 +159,38 @@ begin
 
   Result := FB0;
 
-  for i := 0 to High(FCoeficientes) do begin
-    Result := Result + FCoeficientes[i] * aSample[i];
+  for i := 0 to High(FCoefficients) do begin
+    Result := Result + FCoefficients[i] * aSample[i];
   end;
 end;
 
 function TLinearRegression.ToJson: TJsonObject;
 var
-  JsonCoeficientes: TJSONArray;
+  vJsonCoefficients: TJSONArray;
   i: Integer;
-  JsonObj : TJsonObject;
+  vJsonObj : TJsonObject;
 begin
   Result := TJSONObject.Create;
-  JsonObj := TJSONObject.Create;
+  vJsonObj := TJSONObject.Create;
 
   Result.AddPair('NormalizationRange', NormRangeToJSON);
   Result.AddPair('InputLength', TJSONNumber.Create(InputLength));
-  Result.AddPair('Model', JsonObj);
+  Result.AddPair('Model', vJsonObj);
 
-  JsonCoeficientes := TJSONArray.Create;
+  vJsonCoefficients := TJSONArray.Create;
 
-  JsonObj.AddPair('Intercept', TJSONNumber.Create(FB0));
+  vJsonObj.AddPair('Intercept', TJSONNumber.Create(FB0));
 
-  for i := 0 to High(FCoeficientes) do begin
-    JsonCoeficientes.Add(FCoeficientes[i]);
+  for i := 0 to High(FCoefficients) do begin
+    vJsonCoefficients.Add(FCoefficients[i]);
   end;
 
-  JsonObj.AddPair('Coefficients', JsonCoeficientes);
+  vJsonObj.AddPair('Coefficients', vJsonCoefficients);
 end;
 
 procedure TLinearRegression.FromJson(aJson: TJsonObject);
 var
-  JsonCoeficientes: TJSONArray;
+  vJsonCoefficients: TJSONArray;
   i: Integer;
 begin
   InputLength := StrToInt(aJson.FindValue('InputLength').Value);
@@ -194,59 +198,59 @@ begin
   aJson := aJson.FindValue('Model') as TJSONObject;
 
   if aJson.TryGetValue<Double>('Intercept', FB0) then begin
-    JsonCoeficientes := aJson.GetValue<TJSONArray>('Coefficients');
-    SetLength(FCoeficientes, JsonCoeficientes.Count);
+    vJsonCoefficients := aJson.GetValue<TJSONArray>('Coefficients');
+    SetLength(FCoefficients, vJsonCoefficients.Count);
 
-    for i := 0 to JsonCoeficientes.Count - 1 do begin
-      FCoeficientes[i] := JsonCoeficientes.Items[i].AsType<Double>;
+    for i := 0 to vJsonCoefficients.Count - 1 do begin
+      FCoefficients[i] := vJsonCoefficients.Items[i].AsType<Double>;
     end;
 
     Trained := True;
   end else begin
-    raise Exception.Create('JSON inválido: Intercepto não encontrado.');
+    raise Exception.Create('Invalid JSON: Intercept not found.');
   end;
 end;
 
-procedure TLinearRegression.SaveToFile(const FileName: string);
+procedure TLinearRegression.SaveToFile(const aFileName: string);
 var
-  Json: TJsonObject;
-  FileStream: TFileStream;
-  JsonString: TStringStream;
+  vJson: TJsonObject;
+  vFileStream: TFileStream;
+  vJsonString: TStringStream;
 begin
-  Json := ToJson;
-  JsonString := TStringStream.Create(Json.ToJSON, TEncoding.UTF8);
+  vJson := ToJson;
+  vJsonString := TStringStream.Create(vJson.ToJSON, TEncoding.UTF8);
   try
-    FileStream := TFileStream.Create(FileName, fmCreate);
+    vFileStream := TFileStream.Create(aFileName, fmCreate);
     try
-      FileStream.CopyFrom(JsonString, JsonString.Size);
+      vFileStream.CopyFrom(vJsonString, vJsonString.Size);
     finally
-      FileStream.Free;
+      vFileStream.Free;
     end;
   finally
-    JsonString.Free;
-    Json.Free;
+    vJsonString.Free;
+    vJson.Free;
   end;
 end;
 
-procedure TLinearRegression.LoadFromFile(const FileName: string);
+procedure TLinearRegression.LoadFromFile(const aFileName: string);
 var
-  Json: TJsonObject;
-  FileStream: TFileStream;
-  JsonString: TStringStream;
+  vJson: TJsonObject;
+  vFileStream: TFileStream;
+  vJsonString: TStringStream;
 begin
-  FileStream := TFileStream.Create(FileName, fmOpenRead);
-  JsonString := TStringStream.Create('', TEncoding.UTF8);
+  vFileStream := TFileStream.Create(aFileName, fmOpenRead);
+  vJsonString := TStringStream.Create('', TEncoding.UTF8);
   try
-    JsonString.CopyFrom(FileStream, FileStream.Size);
-    Json := TJSONObject.ParseJSONValue(JsonString.DataString) as TJsonObject;
+    vJsonString.CopyFrom(vFileStream, vFileStream.Size);
+    vJson := TJSONObject.ParseJSONValue(vJsonString.DataString) as TJsonObject;
     try
-      FromJson(Json);
+      FromJson(vJson);
     finally
-      Json.Free;
+      vJson.Free;
     end;
   finally
-    FileStream.Free;
-    JsonString.Free;
+    vFileStream.Free;
+    vJsonString.Free;
   end;
 end;
 

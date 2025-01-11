@@ -37,141 +37,134 @@ end;
 
 function InitializeCentroids(const aData: TAIDatasetClustering; aK: Integer): TCentroids;
 var
-  i, j, Index: Integer;
-  Centroids: TCentroids;
+  i, j, vIndex: Integer;
+  vCentroids: TCentroids;
 begin
-  SetLength(Centroids, aK);
+  SetLength(vCentroids, aK);
   Randomize;
   for i := 0 to aK - 1 do  begin
-    Index := Random(Length(aData));
-    SetLength(Centroids[i], Length(aData[Index]));
-    for j := 0 to Length(aData[Index]) - 1 do
-      Centroids[i][j] := aData[Index][j];
+    vIndex := Random(Length(aData));
+    SetLength(vCentroids[i], Length(aData[vIndex]));
+    for j := 0 to Length(aData[vIndex]) - 1 do
+      vCentroids[i][j] := aData[vIndex][j];
   end;
-  Result := Centroids;
+  Result := vCentroids;
 end;
 
 function InitializeCentroidsPlusPlus(const aData: TAIDatasetClustering; aK: Integer): TCentroids;
 var
-  Centroids: TCentroids;
-  Distances: TArray<Double>;
-  SumDistances, RandomVal, PartialSum: Double;
+  vCentroids: TCentroids;
+  vDistances: TArray<Double>;
+  vSumDistances, vRandomVal, vPartialSum: Double;
   i, j, Index: Integer;
 begin
-  SetLength(Centroids, aK);
+  SetLength(vCentroids, aK);
   Randomize;
-
-  
   Index := Random(Length(aData));
-  SetLength(Centroids[0], Length(aData[Index]));
+  SetLength(vCentroids[0], Length(aData[Index]));
   for j := 0 to Length(aData[Index]) - 1 do begin
-    Centroids[0][j] := aData[Index][j];
+    vCentroids[0][j] := aData[Index][j];
   end;
 
   for i := 1 to aK - 1 do begin
-    SetLength(Distances, Length(aData));
-    SumDistances := 0;
+    SetLength(vDistances, Length(aData));
+    vSumDistances := 0;
 
-    
     for j := 0 to Length(aData) - 1 do begin
-      Distances[j] := CalcularDistanciaEuclidiana(aData[j], Centroids[0]);
+      vDistances[j] := CalculateEuclideanDistance(aData[j], vCentroids[0]);
       for Index := 1 to i - 1 do
-        Distances[j] := Min(Distances[j], CalcularDistanciaEuclidiana(aData[j], Centroids[Index]));
-      SumDistances := SumDistances + Distances[j];
+        vDistances[j] := Min(vDistances[j], CalculateEuclideanDistance(aData[j], vCentroids[Index]));
+      vSumDistances := vSumDistances + vDistances[j];
     end;
 
-    
-    RandomVal := Random * SumDistances;
-    PartialSum := 0;
+    vRandomVal := Random * vSumDistances;
+    vPartialSum := 0;
     for j := 0 to Length(aData) - 1 do begin
-      PartialSum := PartialSum + Distances[j];
-      if PartialSum >= RandomVal then begin
-        SetLength(Centroids[i], Length(aData[j]));
+      vPartialSum := vPartialSum + vDistances[j];
+      if vPartialSum >= vRandomVal then begin
+        SetLength(vCentroids[i], Length(aData[j]));
         for Index := 0 to Length(aData[j]) - 1 do begin
-          Centroids[i][Index] := aData[j][Index];
+          vCentroids[i][Index] := aData[j][Index];
         end;
         Break;
       end;
     end;
   end;
 
-  Result := Centroids;
+  Result := vCentroids;
 end;
 
 function AssignClusters(const aData: TAIDatasetClustering; const aCentroids: TCentroids): TArray<Integer>;
 var
-  i, j, Closest: Integer;
-  MinDist, Dist: Double;
-  Clusters: TArray<Integer>;
+  i, j, vClosest: Integer;
+  vMinDist, vDist: Double;
+  vClusters: TArray<Integer>;
 begin
-  SetLength(Clusters, Length(aData));
+  SetLength(vClusters, Length(aData));
   for i := 0 to Length(aData) - 1 do begin
-    Closest := 0;
-    MinDist := CalcularDistanciaEuclidiana(aData[i], aCentroids[0]);
+    vClosest := 0;
+    vMinDist := CalculateEuclideanDistance(aData[i], aCentroids[0]);
     for j := 1 to Length(aCentroids) - 1 do begin
-      Dist := CalcularDistanciaEuclidiana(aData[i], aCentroids[j]);
-      if Dist < MinDist then begin
-        MinDist := Dist;
-        Closest := j;
+      vDist := CalculateEuclideanDistance(aData[i], aCentroids[j]);
+      if vDist < vMinDist then begin
+        vMinDist := vDist;
+        vClosest := j;
       end;
     end;
-    Clusters[i] := Closest;
+    vClusters[i] := vClosest;
   end;
-  Result := Clusters;
+  Result := vClusters;
 end;
 
 function UpdateCentroids(const aData: TAIDatasetClustering; const aClusters: TArray<Integer>; aK: Integer): TCentroids;
 var
   i, j  : Integer;
-  Centroids: TCentroids;
-  Sums: TArray<TAISampleAtr>;
-  Count: TArray<Integer>;
+  vCentroids: TCentroids;
+  vSums: TArray<TAISampleAtr>;
+  vCount: TArray<Integer>;
 begin
-  SetLength(Centroids, aK);
-  SetLength(Sums, aK);
-  SetLength(Count, aK);
+  SetLength(vCentroids, aK);
+  SetLength(vSums, aK);
+  SetLength(vCount, aK);
 
-  
   for i := 0 to aK - 1 do begin
-    SetLength(Sums[i], Length(aData[0]));
-    for j := 0 to Length(Sums[i]) - 1 do begin
-      Sums[i][j] := 0;
+    SetLength(vSums[i], Length(aData[0]));
+    for j := 0 to Length(vSums[i]) - 1 do begin
+      vSums[i][j] := 0;
     end;
-    Count[i] := 0;
+    vCount[i] := 0;
   end;
 
-  
   for i := 0 to Length(aData) - 1 do begin
     for j := 0 to Length(aData[i]) - 1 do begin
-      Sums[aClusters[i]][j] := Sums[aClusters[i]][j] + aData[i][j];
+      vSums[aClusters[i]][j] := vSums[aClusters[i]][j] + aData[i][j];
     end;
-    Inc(Count[aClusters[i]]);
+    Inc(vCount[aClusters[i]]);
   end;
 
-  
   for i := 0 to aK - 1 do begin
-    if Count[i] > 0 then begin
-      SetLength(Centroids[i], Length(Sums[i]));
-      for j := 0 to Length(Sums[i]) - 1 do begin
-        Centroids[i][j] := Sums[i][j] / Count[i];
+    if vCount[i] > 0 then begin
+      SetLength(vCentroids[i], Length(vSums[i]));
+      for j := 0 to Length(vSums[i]) - 1 do begin
+        vCentroids[i][j] := vSums[i][j] / vCount[i];
       end;
     end;
   end;
 
-  Result := Centroids;
+  Result := vCentroids;
 end;
 
-function CalculateInertia(const aData: TAIDatasetClustering; const Clusters: TArray<Integer>; const Centroids: TCentroids): Double;
+function CalculateInertia(const aData: TAIDatasetClustering; const aClusters: TArray<Integer>; const aCentroids: TCentroids): Double;
 var
   i : Integer;
-  Inertia, Dist: Double;
+  vInertia, vDist: Double;
 begin
-  Inertia := 0.0;
+  vInertia := 0.0;
   for i := 0 to Length(aData) - 1 do begin
-    Dist := CalcularDistanciaEuclidiana(aData[i], Centroids[Clusters[i]]);
-    Inertia := Inertia + Power(Dist, 2);
+    vDist := CalculateEuclideanDistance(aData[i], aCentroids[aClusters[i]]);
+    vInertia := vInertia + Power(vDist, 2);
   end;
-  Result := Inertia;
+  Result := vInertia;
 end;
 
 function KMeans(aData: String; aK, aMaxIterations, aNumInitializations: Integer; aHasHeader : Boolean = True): TArray<Integer>;
@@ -200,40 +193,40 @@ end;
 
 function KMeans(aData: TAIDatasetClustering; aK, aMaxIterations, aNumInitializations: Integer): TArray<Integer>;
 var
-  BestCentroids, Centroids: TCentroids;
-  BestClusters, Clusters, OldClusters: TArray<Integer>;
-  BestInertia, CurrentInertia: Double;
+  vBestCentroids, vCentroids: TCentroids;
+  vBestClusters, vClusters, vOldClusters: TArray<Integer>;
+  vBestInertia, vCurrentInertia: Double;
   i, j: Integer;
 begin
-  BestInertia := Infinity;
+  vBestInertia := Infinity;
 
   for j := 0 to aNumInitializations - 1 do begin
-    
-    Centroids := InitializeCentroidsPlusPlus(aData, aK);
+
+    vCentroids := InitializeCentroidsPlusPlus(aData, aK);
 
     for i := 0 to aMaxIterations - 1 do begin
-      Clusters := AssignClusters(aData, Centroids);
+      vClusters := AssignClusters(aData, vCentroids);
 
-      if (i > 20) and (ArraysAreEqual(Clusters, OldClusters)) then begin
+      if (i > 20) and (ArraysAreEqual(vClusters, vOldClusters)) then begin
         Break;
       end;
 
-      OldClusters := Clusters;
-      Centroids := UpdateCentroids(aData, Clusters, aK);
+      vOldClusters := vClusters;
+      vCentroids := UpdateCentroids(aData, vClusters, aK);
     end;
 
-    
-    CurrentInertia := CalculateInertia(aData, Clusters, Centroids);
 
-    
-    if CurrentInertia < BestInertia then begin
-      BestInertia := CurrentInertia;
-      BestClusters := Clusters;
-      BestCentroids := Centroids;
+    vCurrentInertia := CalculateInertia(aData, vClusters, vCentroids);
+
+
+    if vCurrentInertia < vBestInertia then begin
+      vBestInertia := vCurrentInertia;
+      vBestClusters := vClusters;
+      vBestCentroids := vCentroids;
     end;
   end;
 
-  Result := BestClusters;
+  Result := vBestClusters;
 end;
 
 end.

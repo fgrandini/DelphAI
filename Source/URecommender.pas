@@ -20,21 +20,22 @@ type
     FTrainingUser : Boolean;
 
     function getNumUsers : Integer;
-    function getNumItems : iNTEGER;
+    function getNumItems : Integer;
 
-    function CalculateManhattanDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
-    function CalculateEuclideanDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
-    function CalculateCosineSimilarity(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
-    function CalculateJaccardDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
-    function CalculatePearsonCorrelation(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+    function CalculateManhattanDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
+    function CalculateEuclideanDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
+    function CalculateCosineSimilarity(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
+    function CalculateJaccardDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
+    function CalculatePearsonCorrelation(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
 
     function GetMostCommonItems: TArray<Integer>;
     function GetRecommendedItems(const aRate: TAIDatasetRecommendation; aProximity, aConsumedItems: TArray<Double>;
-                                 aTopN: Integer; Method: TUserScoreAggregationMethod): TArray<Integer>;
-    function CalculateDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+                                 aTopN: Integer; aMethod: TUserScoreAggregationMethod): TArray<Integer>;
+    function CalculateDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
     procedure DoCreate(aItemsToRecommendCount, aK : Integer;
                        aAggregMethod : TUserScoreAggregationMethod = amWeightedAverage; aDistanceMethod : TDistanceMode = dmCosine;
                        aCalculateItemDistanceOnCreate : Boolean = False);
+    function InvertMatrix(const aDataset: TAIDatasetRecommendation): TAIDatasetRecommendation;
   public
     constructor Create(aMatrix: TAIDatasetRecommendation; aNormalizationRange : TNormalizationRange; aItemsToRecommendCount, aK : Integer;
                        aAggregMethod : TUserScoreAggregationMethod = amWeightedAverage; aDistanceMethod : TDistanceMode = dmCosine;
@@ -54,8 +55,8 @@ type
     function RecommendFromUser(aUserInfo: TArray<Double>; aIDSearch : Integer = -1): TArray<Integer>; overload;
     procedure GenerateItemMatrix;
 
-    procedure CalculateItemRecall(out ItemRecall: Double);
-    procedure CalculateUserRecall(out UserRecall: Double; aItemsToTest : TArray<TArray<Integer>>);
+    procedure CalculateItemRecall(out aItemRecall: Double);
+    procedure CalculateUserRecall(out aUserRecall: Double; aItemsToTest : TArray<TArray<Integer>>);
 
     property ItemsToRecommendCount    : Integer read FItemsToRecommendCount;
     property K              : Integer read FK;
@@ -72,24 +73,24 @@ uses
 
 { TRecommender }
 
-function InvertMatrix(const aDataset: TAIDatasetRecommendation): TAIDatasetRecommendation;
+function TRecommender.InvertMatrix(const aDataset: TAIDatasetRecommendation): TAIDatasetRecommendation;
 var
   i, j: Integer;
-  itemCount, userCount: Integer;
-  InvertedMatrix: TAIDatasetRecommendation;
+  vItemCount, vUserCount: Integer;
+  vInvertedMatrix: TAIDatasetRecommendation;
 begin
-  itemCount := 0;
-  userCount := Length(aDataset);       
-  if userCount > 0 then
-    itemCount := Length(aDataset[0]);  
+  vItemCount := 0;
+  vUserCount := Length(aDataset);
+  if vUserCount > 0 then
+    vItemCount := Length(aDataset[0]);
 
-  SetLength(InvertedMatrix, itemCount, userCount);
+  SetLength(vInvertedMatrix, vItemCount, vUserCount);
 
-  for i := 0 to userCount - 1 do
-    for j := 0 to itemCount - 1 do
-      InvertedMatrix[j, i] := aDataset[i, j];
+  for i := 0 to vUserCount - 1 do
+    for j := 0 to vItemCount - 1 do
+      vInvertedMatrix[j, i] := aDataset[i, j];
 
-  Result := InvertedMatrix;
+  Result := vInvertedMatrix;
 end;
 
 constructor TRecommender.Create(aMatrix: TAIDatasetRecommendation; aNormalizationRange : TNormalizationRange; aItemsToRecommendCount, aK : Integer;
@@ -171,263 +172,260 @@ begin
   inherited;
 end;
 
-function TRecommender.CalculateManhattanDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+function TRecommender.CalculateManhattanDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
 var
   i: Integer;
-  Distance: Double;
-  UserA, UserB: TArray<Double>;
-  vUtil : Boolean;
+  vDistance: Double;
+  vUserA, vUserB: TArray<Double>;
+  vUseful : Boolean;
 begin
-  Distance := 0;
+  vDistance := 0;
 
-  if Length(ArrayA) > 0 then
-    UserA := ArrayA
-  else if IsUserBased then
-    UserA := FDataset[A]
+  if Length(aArrayA) > 0 then
+    vUserA := aArrayA
+  else if aIsUserBased then
+    vUserA := FDataset[A]
   else
-    UserA := FMatrixItem[A];
+    vUserA := FMatrixItem[A];
 
-  if Length(ArrayB) > 0 then
-    UserB := ArrayB
-  else if IsUserBased then
-    UserB := FDataset[B]
+  if Length(aArrayB) > 0 then
+    vUserB := aArrayB
+  else if aIsUserBased then
+    vUserB := FDataset[B]
   else
-    UserB := FMatrixItem[B];
+    vUserB := FMatrixItem[B];
 
-  vUtil := False;
-  for i := 0 to High(UserA) do begin
-    if (not vUtil) and (UserB[i] > 0) and (UserA[i] = 0) then begin
-      vUtil := True;
+  vUseful := False;
+  for i := 0 to High(vUserA) do begin
+    if (not vUseful) and (vUserB[i] > 0) and (vUserA[i] = 0) then begin
+      vUseful := True;
     end;
-    Distance := Distance + Abs(UserA[i] - UserB[i]);
+    vDistance := vDistance + Abs(vUserA[i] - vUserB[i]);
   end;
 
-  if vUtil then begin
-    Result := Distance;
+  if vUseful then begin
+    Result := vDistance;
   end else begin
     Result := MaxDouble;
   end;
 end;
 
-function TRecommender.CalculateEuclideanDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+function TRecommender.CalculateEuclideanDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
 var
   i: Integer;
-  Distance: Double;
-  UserA, UserB: TArray<Double>;
-  vUtil : Boolean;
+  vDistance: Double;
+  vUserA, vUserB: TArray<Double>;
+  vUseful : Boolean;
 begin
-  Distance := 0;
-  vUtil := False;
+  vDistance := 0;
+  vUseful := False;
 
-  if Length(ArrayA) > 0 then
-    UserA := ArrayA
-  else if IsUserBased then
-    UserA := FDataset[A]
+  if Length(aArrayA) > 0 then
+    vUserA := aArrayA
+  else if aIsUserBased then
+    vUserA := FDataset[A]
   else
-    UserA := FMatrixItem[A];
+    vUserA := FMatrixItem[A];
 
-  if Length(ArrayB) > 0 then
-    UserB := ArrayB
-  else if IsUserBased then
-    UserB := FDataset[B]
+  if Length(aArrayB) > 0 then
+    vUserB := aArrayB
+  else if aIsUserBased then
+    vUserB := FDataset[B]
   else
-    UserB := FMatrixItem[B];
+    vUserB := FMatrixItem[B];
 
-  for i := 0 to High(UserA) do begin
-    if (not vUtil) and (UserB[i] > 0) and (UserA[i] = 0) then begin
-      vUtil := True;
+  for i := 0 to High(vUserA) do begin
+    if (not vUseful) and (vUserB[i] > 0) and (vUserA[i] = 0) then begin
+      vUseful := True;
     end;
 
-    Distance := Distance + Sqr(Abs(UserA[i] - UserB[i]));
+    vDistance := vDistance + Sqr(Abs(vUserA[i] - vUserB[i]));
   end;
 
-  if vUtil then begin
-    Result := Sqrt(Distance);
+  if vUseful then begin
+    Result := Sqrt(vDistance);
   end else begin
     Result := MaxDouble;
   end;
 
 end;
 
-function TRecommender.CalculateCosineSimilarity(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+function TRecommender.CalculateCosineSimilarity(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
 var
   i: Integer;
-  DotProduct, MagnitudeA, MagnitudeB: Double;
-  UserA, UserB: TArray<Double>;
-  vUtil : Boolean;
+  vDotProduct, vMagnitudeA, vMagnitudeB: Double;
+  vUserA, vUserB: TArray<Double>;
+  vUseful : Boolean;
 begin
-  vUtil := False;
-  DotProduct := 0;
-  MagnitudeA := 0;
-  MagnitudeB := 0;
+  vUseful := False;
+  vDotProduct := 0;
+  vMagnitudeA := 0;
+  vMagnitudeB := 0;
 
-  if Length(ArrayA) > 0 then
-    UserA := ArrayA
-  else if IsUserBased then
-    UserA := FDataset[A]
+  if Length(aArrayA) > 0 then
+    vUserA := aArrayA
+  else if aIsUserBased then
+    vUserA := FDataset[A]
   else
-    UserA := FMatrixItem[A];
+    vUserA := FMatrixItem[A];
 
-  if Length(ArrayB) > 0 then
-    UserB := ArrayB
-  else if IsUserBased then
-    UserB := FDataset[B]
+  if Length(aArrayB) > 0 then
+    vUserB := aArrayB
+  else if aIsUserBased then
+    vUserB := FDataset[B]
   else
-    UserB := FMatrixItem[B];
+    vUserB := FMatrixItem[B];
 
-  for i := 0 to High(UserA) do begin
-    if (not vUtil) and (UserB[i] > 0) and (UserA[i] = 0) then begin
-      vUtil := True;
+  for i := 0 to High(vUserA) do begin
+    if (not vUseful) and (vUserB[i] > 0) and (vUserA[i] = 0) then begin
+      vUseful := True;
     end;
-    DotProduct := DotProduct + (UserA[i] * UserB[i]);
-    MagnitudeA := MagnitudeA + Sqr(UserA[i]);
-    MagnitudeB := MagnitudeB + Sqr(UserB[i]);
+    vDotProduct := vDotProduct + (vUserA[i] * vUserB[i]);
+    vMagnitudeA := vMagnitudeA + Sqr(vUserA[i]);
+    vMagnitudeB := vMagnitudeB + Sqr(vUserB[i]);
   end;
 
-  if vUtil then begin
-    Result := DotProduct / (Sqrt(MagnitudeA) * Sqrt(MagnitudeB));
+  if vUseful then begin
+    Result := vDotProduct / (Sqrt(vMagnitudeA) * Sqrt(vMagnitudeB));
   end else begin
     Result := -MaxDouble;
   end;
 end;
 
-function TRecommender.CalculateJaccardDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+function TRecommender.CalculateJaccardDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
 var
   i: Integer;
-  Intersection, Union: Double;
-  UserA, UserB: TArray<Double>;
-  vUtil : Boolean;
+  vIntersection, vUnion: Double;
+  vUserA, vUserB: TArray<Double>;
+  vUseful : Boolean;
 begin
-  Intersection := 0;
-  Union := 0;
-  vUtil := False;
+  vIntersection := 0;
+  vUnion := 0;
+  vUseful := False;
 
-  if Length(ArrayA) > 0 then
-    UserA := ArrayA
-  else if IsUserBased then
-    UserA := FDataset[A]
+  if Length(aArrayA) > 0 then
+    vUserA := aArrayA
+  else if aIsUserBased then
+    vUserA := FDataset[A]
   else
-    UserA := FMatrixItem[A];
+    vUserA := FMatrixItem[A];
 
-  if Length(ArrayB) > 0 then
-    UserB := ArrayB
-  else if IsUserBased then
-    UserB := FDataset[B]
+  if Length(aArrayB) > 0 then
+    vUserB := aArrayB
+  else if aIsUserBased then
+    vUserB := FDataset[B]
   else
-    UserB := FMatrixItem[B];
+    vUserB := FMatrixItem[B];
 
-  for i := 0 to High(UserA) do begin
-    if (not vUtil) and (UserB[i] > 0) and (UserA[i] = 0) then begin
-      vUtil := True;
+  for i := 0 to High(vUserA) do begin
+    if (not vUseful) and (vUserB[i] > 0) and (vUserA[i] = 0) then begin
+      vUseful := True;
     end;
-    if (UserA[i] > 0) or (UserB[i] > 0) then begin
-      Union := Union + 1;
-      if (UserA[i] > 0) and (UserB[i] > 0) then
-        Intersection := Intersection + 1;
+    if (vUserA[i] > 0) or (vUserB[i] > 0) then begin
+      vUnion := vUnion + 1;
+      if (vUserA[i] > 0) and (vUserB[i] > 0) then
+        vIntersection := vIntersection + 1;
     end;
   end;
 
-
-  if vUtil then begin
-    if Union = 0 then
+  if vUseful then begin
+    if vUnion = 0 then
       Result := 1.0
     else
-      Result := 1 - (Intersection / Union);
+      Result := 1 - (vIntersection / vUnion);
   end else begin
     Result := MaxDouble;
   end;
 end;
 
-function TRecommender.CalculatePearsonCorrelation(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+function TRecommender.CalculatePearsonCorrelation(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
 var
   i: Integer;
-  SumA, SumB, SumASq, SumBSq, SumAB, MeanA, MeanB: Double;
+  vSumA, vSumB, vSumASq, vSumBSq, vSumAB, vMeanA, vMeanB: Double;
   N: Integer;
-  UserA, UserB: TArray<Double>;
+  vUserA, vUserB: TArray<Double>;
 begin
-  SumA := 0;
-  SumB := 0;
-  SumASq := 0;
-  SumBSq := 0;
-  SumAB := 0;
+  vSumA := 0;
+  vSumB := 0;
+  vSumASq := 0;
+  vSumBSq := 0;
+  vSumAB := 0;
   N := 0;
 
-  if Length(ArrayA) > 0 then
-    UserA := ArrayA
-  else if IsUserBased then
-    UserA := FDataset[A]
+  if Length(aArrayA) > 0 then
+    vUserA := aArrayA
+  else if aIsUserBased then
+    vUserA := FDataset[A]
   else
-    UserA := FMatrixItem[A];
+    vUserA := FMatrixItem[A];
 
-  if Length(ArrayB) > 0 then
-    UserB := ArrayB
-  else if IsUserBased then
-    UserB := FDataset[B]
+  if Length(aArrayB) > 0 then
+    vUserB := aArrayB
+  else if aIsUserBased then
+    vUserB := FDataset[B]
   else
-    UserB := FMatrixItem[B];
+    vUserB := FMatrixItem[B];
 
-  if Length(UserA) <> Length(UserB) then
-    raise Exception.Create('Os vetores A e B têm tamanhos diferentes.');
+  if Length(vUserA) <> Length(vUserB) then
+    raise Exception.Create('Vectors A and B have different sizes.');
 
-  for i := 0 to High(UserA) do
+  for i := 0 to High(vUserA) do
   begin
-    if not IsNan(UserA[i]) and not IsNan(UserB[i]) then
+    if not IsNan(vUserA[i]) and not IsNan(vUserB[i]) then
     begin
-      SumA := SumA + UserA[i];
-      SumB := SumB + UserB[i];
-      SumASq := SumASq + Sqr(UserA[i]);
-      SumBSq := SumBSq + Sqr(UserB[i]);
-      SumAB := SumAB + (UserA[i] * UserB[i]);
+      vSumA := vSumA + vUserA[i];
+      vSumB := vSumB + vUserB[i];
+      vSumASq := vSumASq + Sqr(vUserA[i]);
+      vSumBSq := vSumBSq + Sqr(vUserB[i]);
+      vSumAB := vSumAB + (vUserA[i] * vUserB[i]);
       Inc(N);
     end;
   end;
 
   if N = 0 then
   begin
-    Result := 0; 
+    Result := 0;
     Exit;
   end;
 
-  MeanA := SumA / N;
-  MeanB := SumB / N;
+  vMeanA := vSumA / N;
+  vMeanB := vSumB / N;
 
-  SumASq := 0;
-  SumBSq := 0;
-  SumAB := 0;
-  for i := 0 to High(UserA) do
+  vSumASq := 0;
+  vSumBSq := 0;
+  vSumAB := 0;
+  for i := 0 to High(vUserA) do
   begin
-    if not IsNan(UserA[i]) and not IsNan(UserB[i]) then
+    if not IsNan(vUserA[i]) and not IsNan(vUserB[i]) then
     begin
-      SumASq := SumASq + Sqr(UserA[i] - MeanA);
-      SumBSq := SumBSq + Sqr(UserB[i] - MeanB);
-      SumAB := SumAB + ((UserA[i] - MeanA) * (UserB[i] - MeanB));
+      vSumASq := vSumASq + Sqr(vUserA[i] - vMeanA);
+      vSumBSq := vSumBSq + Sqr(vUserB[i] - vMeanB);
+      vSumAB := vSumAB + ((vUserA[i] - vMeanA) * (vUserB[i] - vMeanB));
     end;
   end;
 
-  if (SumASq = 0) or (SumBSq = 0) then
+  if (vSumASq = 0) or (vSumBSq = 0) then
   begin
-    Result := 0; 
+    Result := 0;
     Exit;
   end;
 
-  Result := SumAB / Sqrt(SumASq * SumBSq);
+  Result := vSumAB / Sqrt(vSumASq * vSumBSq);
 end;
 
-
-
-function TRecommender.CalculateDistance(A, B: Integer; IsUserBased: Boolean; ArrayA: TArray<Double> = nil; ArrayB: TArray<Double> = nil): Double;
+function TRecommender.CalculateDistance(A, B: Integer; aIsUserBased: Boolean; aArrayA: TArray<Double> = nil; aArrayB: TArray<Double> = nil): Double;
 begin
   case FDistanceMethod of
     dmManhattan:
-      Result := CalculateManhattanDistance(A, B, IsUserBased, ArrayA, ArrayB);
+      Result := CalculateManhattanDistance(A, B, aIsUserBased, aArrayA, aArrayB);
     dmEuclidean:
-      Result := CalculateEuclideanDistance(A, B, IsUserBased, ArrayA, ArrayB);
+      Result := CalculateEuclideanDistance(A, B, aIsUserBased, aArrayA, aArrayB);
     dmCosine:
-      Result := CalculateCosineSimilarity(A, B, IsUserBased, ArrayA, ArrayB);
+      Result := CalculateCosineSimilarity(A, B, aIsUserBased, aArrayA, aArrayB);
     dmJaccard:
-      Result := CalculateJaccardDistance(A, B, IsUserBased, ArrayA, ArrayB);
+      Result := CalculateJaccardDistance(A, B, aIsUserBased, aArrayA, aArrayB);
     dmPearson:
-      Result := CalculatePearsonCorrelation(A, B, IsUserBased, ArrayA, ArrayB);
+      Result := CalculatePearsonCorrelation(A, B, aIsUserBased, aArrayA, aArrayB);
   else
     raise Exception.Create('Invalid distance mode');
   end;
@@ -436,106 +434,110 @@ begin
   end;
 end;
 
-procedure TRecommender.CalculateUserRecall(out UserRecall: Double; aItemsToTest : TArray<TArray<Integer>>);
+procedure TRecommender.CalculateUserRecall(out aUserRecall: Double; aItemsToTest : TArray<TArray<Integer>>);
 var
   vBkpMatrix: TAIDatasetRecommendation;
   i, j, k : Integer;
-  vQtdTestes,
-  userHitCount, totalUserTests: Integer;
-  recommendedItems: TArray<Integer>;
+  vNumUsers: Integer;
+  vNumItems: Integer;
+  vQtdTests,
+  vUserHitCount, vTotalUserTests: Integer;
+  vRecommendedItems: TArray<Integer>;
 begin
   FTrainingUser := True;
   try
     SetLength(vBkpMatrix, Length(FDataset), Length(FDataset[0]));
+    vNumItems := getNumItems;
+    vNumUsers := getNumUsers;
     for i := 0 to getNumUsers - 1 do begin
-      for j := 0 to getNumItems - 1 do begin
+      for j := 0 to vNumItems - 1 do begin
         vBkpMatrix[i][j] := FDataset[i][j];
       end;
     end;
 
-    userHitCount := 0;
-    totalUserTests := 0;
+    vUserHitCount := 0;
+    vTotalUserTests := 0;
 
-    if getNumUsers > 8000 then begin
-      vQtdTestes := 8000;
+    if vNumUsers > 8000 then begin
+      vQtdTests := 8000;
     end else begin
-      vQtdTestes := getNumUsers;
+      vQtdTests := vNumUsers;
     end;
 
-    for i := getNumUsers - vQtdTestes to getNumUsers - 1 do begin
+    for i := vNumUsers - vQtdTests to vNumUsers - 1 do begin
       for j in aItemsToTest[i] do begin
         FDataset[i][j] := 0;
-        recommendedItems := RecommendFromUser(i);
-        for k := 0 to High(recommendedItems) do begin
-          if j = recommendedItems[k] then begin
-            Inc(userHitCount);
+        vRecommendedItems := RecommendFromUser(i);
+        for k := 0 to High(vRecommendedItems) do begin
+          if j = vRecommendedItems[k] then begin
+            Inc(vUserHitCount);
             Break;
           end;
         end;
 
         FDataset[i][j] := vBkpMatrix[i][j];
 
-        Inc(totalUserTests);
+        Inc(vTotalUserTests);
       end;
     end;
 
-    if totalUserTests > 0 then begin
-      UserRecall := userHitCount / totalUserTests;
+    if vTotalUserTests > 0 then begin
+      aUserRecall := vUserHitCount / vTotalUserTests;
     end else begin
-      UserRecall := 0.0;
+      aUserRecall := 0.0;
     end;
   finally
     FTrainingUser := False;
   end;
 end;
 
-procedure TRecommender.CalculateItemRecall(out ItemRecall: Double);
+procedure TRecommender.CalculateItemRecall(out aItemRecall: Double);
 var
   vBkpMatrixItem: TAIDatasetRecommendation;
   i, j, k, l : Integer;
-  vQtdTestes,
-  itemHitCount, totalItemTests: Integer;
-  recommendedItems: TArray<Integer>;
-  vEncontrou : Boolean;
+  vQtdTests,
+  vItemHitCount, vTotalItemTests: Integer;
+  vRecommendedItems: TArray<Integer>;
+  vFound : Boolean;
 begin
   vBkpMatrixItem := Copy(FMatrixItem);
 
-  itemHitCount := 0;
-  totalItemTests := 0;
+  vItemHitCount := 0;
+  vTotalItemTests := 0;
 
   if getNumUsers > 100000 then begin
-    vQtdTestes := 100000;
+    vQtdTests := 100000;
   end else begin
-    vQtdTestes := getNumUsers;
+    vQtdTests := getNumUsers;
   end;
 
-  for i := getNumUsers - vQtdTestes to getNumUsers - 1 do begin
+  for i := getNumUsers - vQtdTests to getNumUsers - 1 do begin
     for j := 0 to getNumItems - 1 do begin
       if FDataset[i][j] > 0 then begin
-        vEncontrou := False;
+        vFound := False;
         for k := 0 to getNumItems - 1 do begin
           if (k <> j) and (FDataset[i][k] > 0) then begin
-            recommendedItems := RecommendFromItem(k);
-            for l := 0 to High(recommendedItems) do begin
-              if j = recommendedItems[l] then begin
-                Inc(itemHitCount);
-                vEncontrou := True;
+            vRecommendedItems := RecommendFromItem(k);
+            for l := 0 to High(vRecommendedItems) do begin
+              if j = vRecommendedItems[l] then begin
+                Inc(vItemHitCount);
+                vFound := True;
                 Break;
               end;
             end;
-            if vEncontrou then begin
+            if vFound then begin
               Break;
             end;
           end;
         end;
-        Inc(totalItemTests);
+        Inc(vTotalItemTests);
       end;
     end;
   end;
-  if totalItemTests > 0 then
-    ItemRecall := itemHitCount / totalItemTests
+  if vTotalItemTests > 0 then
+    aItemRecall := vItemHitCount / vTotalItemTests
   else
-    ItemRecall := 0.0;
+    aItemRecall := 0.0;
 end;
 
 function TRecommender.RecommendFromUser(aUserID: Integer): TArray<Integer>;
@@ -546,7 +548,7 @@ end;
 function TRecommender.RecommendFromItem(aItemInfo: TArray<Double>; aIDSearch : Integer = -1): TArray<Integer>;
 var
   vDistances: TArray<Double>;
-  BestItemIndices: TArray<Integer>;
+  vBestItemIndexes: TArray<Integer>;
   i: Integer;
   vSaveValue: TArray<Integer>;
 begin
@@ -564,7 +566,7 @@ begin
     Exit(Copy(vSaveValue));
   end;
   SetLength(vDistances, getNumItems);
-  SetLength(BestItemIndices, getNumItems);
+  SetLength(vBestItemIndexes, getNumItems);
   SetLength(Result, ItemsToRecommendCount);
 
   for i := 0 to getNumItems - 1 do begin
@@ -577,11 +579,11 @@ begin
     end else begin
       vDistances[i] := CalculateDistance(0, i, False, aItemInfo);
     end;
-    BestItemIndices[i] := i;
+    vBestItemIndexes[i] := i;
   end;
 
   if FDistanceMethod in [dmCosine, dmPearson] then begin
-    TArray.Sort<Integer>(BestItemIndices,
+    TArray.Sort<Integer>(vBestItemIndexes,
       TComparer<Integer>.Construct(
         function(const Left, Right: Integer): Integer
         begin
@@ -590,7 +592,7 @@ begin
       )
     );
   end else begin
-    TArray.Sort<Integer>(BestItemIndices,
+    TArray.Sort<Integer>(vBestItemIndexes,
       TComparer<Integer>.Construct(
         function(const Left, Right: Integer): Integer
         begin
@@ -600,9 +602,9 @@ begin
     );
   end;
 
-  SetLength(BestItemIndices, ItemsToRecommendCount);
+  SetLength(vBestItemIndexes, ItemsToRecommendCount);
 
-  Result := BestItemIndices;
+  Result := vBestItemIndexes;
 
   if (not FTrainingUser) and (aIDSearch <> -1) then begin
     FClosestItems.Add(aIDSearch, Copy(Result));
@@ -621,7 +623,7 @@ end;
 function TRecommender.RecommendFromUser(aUserInfo: TArray<Double>; aIDSearch : Integer = -1) : TArray<Integer>;
 var
   vDistances, vOta: TArray<Double>;
-  BestUserIndices: TArray<Integer>;
+  vBestUserIndexes: TArray<Integer>;
   vRatesRec: TAIDatasetRecommendation;
   vFilteredDistances: TArray<Double>;
   i: Integer;
@@ -640,7 +642,7 @@ begin
   end;
 
   SetLength(vDistances, getNumUsers);
-  SetLength(BestUserIndices, getNumUsers);
+  SetLength(vBestUserIndexes, getNumUsers);
   SetLength(vFilteredDistances, FK);
   SetLength(vRatesRec, FK, getNumItems);
 
@@ -654,12 +656,12 @@ begin
     end else begin
       vDistances[i] := CalculateDistance(0, i, True, aUserInfo);
     end;
-    BestUserIndices[i] := i;
+    vBestUserIndexes[i] := i;
   end;
   vOta := vDistances;
 
   if FDistanceMethod in [dmCosine, dmPearson] then begin
-    TArray.Sort<Integer>(BestUserIndices,
+    TArray.Sort<Integer>(vBestUserIndexes,
       TComparer<Integer>.Construct(
         function(const Left, Right: Integer): Integer
         begin
@@ -668,7 +670,7 @@ begin
       )
     );
   end else begin
-    TArray.Sort<Integer>(BestUserIndices,
+    TArray.Sort<Integer>(vBestUserIndexes,
       TComparer<Integer>.Construct(
         function(const Left, Right: Integer): Integer
         begin
@@ -678,11 +680,11 @@ begin
     );
   end;
 
-  SetLength(BestUserIndices, FK);
+  SetLength(vBestUserIndexes, FK);
 
   for i := 0 to FK - 1 do begin
-    vRatesRec[i] := FDataset[BestUserIndices[i]];
-    vFilteredDistances[i] := vDistances[BestUserIndices[i]];
+    vRatesRec[i] := FDataset[vBestUserIndexes[i]];
+    vFilteredDistances[i] := vDistances[vBestUserIndexes[i]];
   end;
 
   Result := GetRecommendedItems(vRatesRec, vFilteredDistances, aUserInfo, FItemsToRecommendCount, FAggregMethod);
@@ -698,79 +700,80 @@ end;
 
 function TRecommender.GetMostCommonItems: TArray<Integer>;
 var
-  ItemFrequency: TDictionary<Integer, Integer>;
-  Item, Count, i: Integer;
-  SortedItems: TArray<Integer>;
+  vItemFrequency: TDictionary<Integer, Integer>;
+  vItem, vCount, i: Integer;
+  vSortedItems: TArray<Integer>;
 begin
-  ItemFrequency := TDictionary<Integer, Integer>.Create;
+  vItemFrequency := TDictionary<Integer, Integer>.Create;
   try
     for i := 0 to getNumUsers - 1 do
     begin
-      for Item := 0 to getNumItems - 1 do
+      for vItem := 0 to getNumItems - 1 do
       begin
-        if FDataset[i][Item] > 0 then
+        if FDataset[i][vItem] > 0 then
         begin
-          if not ItemFrequency.TryGetValue(Item, Count) then
-            Count := 0;
-          ItemFrequency[Item] := Count + 1;
+          if not vItemFrequency.TryGetValue(vItem, vCount) then
+            vCount := 0;
+          vItemFrequency[vItem] := vCount + 1;
         end;
       end;
     end;
 
-    SortedItems := ItemFrequency.Keys.ToArray;
-    TArray.Sort<Integer>(SortedItems, TComparer<Integer>.Construct(
+    vSortedItems := vItemFrequency.Keys.ToArray;
+    TArray.Sort<Integer>(vSortedItems, TComparer<Integer>.Construct(
       function(const Left, Right: Integer): Integer
       begin
-        Result := ItemFrequency[Right] - ItemFrequency[Left];
+        Result := vItemFrequency[Right] - vItemFrequency[Left];
       end
     ));
 
-    SetLength(Result, Min(FItemsToRecommendCount, Length(SortedItems)));
+    SetLength(Result, Min(FItemsToRecommendCount, Length(vSortedItems)));
     for i := 0 to High(Result) do
-      Result[i] := SortedItems[i];
+      Result[i] := vSortedItems[i];
   finally
-    ItemFrequency.Free;
+    vItemFrequency.Free;
   end;
 end;
-function TRecommender.GetRecommendedItems(const aRate: TAIDatasetRecommendation; aProximity, aConsumedItems: TArray<Double>; aTopN: Integer; Method: TUserScoreAggregationMethod): TArray<Integer>;
+
+function TRecommender.GetRecommendedItems(const aRate: TAIDatasetRecommendation; aProximity, aConsumedItems: TArray<Double>; aTopN: Integer; aMethod: TUserScoreAggregationMethod): TArray<Integer>;
 var
   i, j: Integer;
-  ItemScores: TArray<Double>;
-  RankedItems: TArray<Integer>;
+  vItemScores: TArray<Double>;
+  vRankedItems: TArray<Integer>;
 begin
-  SetLength(ItemScores, getNumItems);
+  SetLength(vItemScores, getNumItems);
   for i := 0 to getNumItems - 1 do
-    ItemScores[i] := 0.0;
- 
+    vItemScores[i] := 0.0;
+
   for i := 0 to Length(aProximity) - 1 do begin
-    
+
     if aProximity[i] = 0 then
       Continue;
 
     for j := 0 to getNumItems - 1 do begin
       if (aConsumedItems[j] <= 0) and (aRate[i][j] > 0) then begin
-        case Method of
+        case aMethod of
           amMode:
-            ItemScores[j] := ItemScores[j] + 1; 
+            vItemScores[j] := vItemScores[j] + 1;
           amWeightedAverage:
-            ItemScores[j] := ItemScores[j] + (aRate[i][j] * aProximity[i]);
+            vItemScores[j] := vItemScores[j] + (aRate[i][j] * aProximity[i]);
           amSimpleSum:
-            ItemScores[j] := ItemScores[j] + aRate[i][j]; 
+            vItemScores[j] := vItemScores[j] + aRate[i][j];
         end;
       end;
     end;
   end;
 
-  SetLength(RankedItems, getNumItems);
+  SetLength(vRankedItems, getNumItems);
   for i := 0 to getNumItems - 1 do
-    RankedItems[i] := i;
+    vRankedItems[i] := i;
 
-  TArray.Sort<Integer>(RankedItems, TComparer<Integer>.Construct(
+  TArray.Sort<Integer>(vRankedItems, TComparer<Integer>.Construct(
     function(const Left, Right: Integer): Integer
     begin
-      if ItemScores[Left] > ItemScores[Right] then
+      if vItemScores[Left] > vItemScores[Right] then
         Result := -1
-      else if ItemScores[Left] < ItemScores[Right] then
+      else if vItemScores[Left] < vItemScores[Right] then
         Result := 1
       else
         Result := 0;
@@ -778,7 +781,7 @@ begin
 
   SetLength(Result, aTopN);
   for i := 0 to aTopN - 1 do
-    Result[i] := RankedItems[i];
+    Result[i] := vRankedItems[i];
 end;
 
 
