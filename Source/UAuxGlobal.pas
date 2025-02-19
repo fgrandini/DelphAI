@@ -158,7 +158,7 @@ begin
     try
       vClass := aDataSet.FieldByName(aDataSet.Fields[aDataSet.FieldCount - 1].FieldName).AsString;
       if not aClassification then begin
-        StrToFloat(vClass);
+        StrToFloat(StringReplace(vClass, ',', '.', [rfReplaceAll]), TFormatSettings.Create('en-US'));
       end;
     except
         on E:EConvertError do begin
@@ -217,7 +217,7 @@ begin
       SetLength(vPoint, Length(vFields) - 1);
       for j := 0 to Length(vPoint) - 1 do begin
         try
-          vPoint[j] := StrToFloat(StringReplace(vFields[j], '.', ',', []));
+          vPoint[j] := StrToFloat(StringReplace(vFields[j], ',', '.', [rfReplaceAll]), TFormatSettings.Create('en-US'));
         except
           on E:EConvertError do begin
             GeneratesErrorMessage('Please verify if all columns' + IfThen(aClassification, ' (except the last one)', '') +
@@ -231,7 +231,7 @@ begin
       try
         vClass := vFields[Length(vFields) - 1];
         if not aClassification then begin
-          StrToFloat(StringReplace(vClass, '.', ',', []));
+          StrToFloat(StringReplace(vClass, ',', '.', [rfReplaceAll]), TFormatSettings.Create('en-US'));
         end;
       except
         on E:EConvertError do begin
@@ -270,7 +270,7 @@ begin
    if Result then begin
     SetLength(aData, Length(vDataGeneric));
     for i := 0 to High(vDataGeneric) do begin
-      aData[i] := TPair<TAISampleAtr, Double>.Create(vDataGeneric[i].Key, StrToCurr(StringReplace(vDataGeneric[i].Value, '.', ',', [])));
+      aData[i] := TPair<TAISampleAtr, Double>.Create(vDataGeneric[i].Key, StrToCurr(StringReplace(vDataGeneric[i].Value, ',', '.', []), TFormatSettings.Create('en-US')));
     end;
     aNormalizationRange := NormalizeDataset(aData);
   end;
@@ -288,7 +288,7 @@ begin
     for i := 0 to High(vDataGeneric) do begin
       aData[i] := vDataGeneric[i].Key;
       SetLength(aData[i], Length(aData[i]) + 1);
-      aData[i][High(aData[i])] := StrToCurr(StringReplace(vDataGeneric[i].Value, '.', ',', []));
+      aData[i][High(aData[i])] := StrToCurr(StringReplace(vDataGeneric[i].Value, ',', '.', []), TFormatSettings.Create('en-US'));
     end;
     aNormalizationRange := NormalizeDataset(aData);
   end;
@@ -358,7 +358,7 @@ begin
   if Result then begin
     SetLength(aData, Length(vDataGeneric));
     for i := 0 to High(vDataGeneric) do begin
-      aData[i] := TPair<TAISampleAtr, Double>.Create(vDataGeneric[i].Key, StrToCurr(StringReplace(vDataGeneric[i].Value, '.', ',', [])));
+      aData[i] := TPair<TAISampleAtr, Double>.Create(vDataGeneric[i].Key, StrToCurr(StringReplace(vDataGeneric[i].Value, ',', '.', []), TFormatSettings.Create('en-US')));
     end;
     aNormalizationRange := NormalizeDataset(aData);
   end;
@@ -374,7 +374,7 @@ begin
     SetLength(aData, Length(vDataGeneric), Length(vDataGeneric[0].Key) + 1);
     for i := 0 to High(vDataGeneric) do begin
       aData[i] := vDataGeneric[i].Key;
-      aData[i][High(aData[i])] := StrToCurr(StringReplace(vDataGeneric[i].Value, '.', ',', []));
+      aData[i][High(aData[i])] := StrToCurr(StringReplace(vDataGeneric[i].Value, ',', '.', []), TFormatSettings.Create('en-US'));
     end;
     aNormalizationRange := NormalizeDataset(aData);
   end;
